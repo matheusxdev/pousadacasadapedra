@@ -1,0 +1,35 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "preserve",
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "noFallthroughCasesInSwitch": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["src/*"],
+      "@/*": ["src/*"]
+    },
+    "types": ["nuxt", "node"]
+  },
+  "include": [
+    "nuxt.config.*",
+    "src/**/*",
+    "app.vue",
+    "components/**/*",
+    "pages/**/*",
+    "plugins/**/*",
+    "server/**/*",
+    "locales/**/*"
+  ],
+  "exclude": ["node_modules", ".nuxt", ".output"]
+}

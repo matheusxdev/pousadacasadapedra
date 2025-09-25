@@ -1,0 +1,406 @@
+# Schemas adicionais para Tours, Reservas e Produtos Estendidos
+
+components:
+  schemas:
+    Tour:
+      type: object
+      properties:
+        uuid:
+          type: string
+          example: "550e8400-e29b-41d4-a716-446655440000"
+        name:
+          type: string
+          example: "Passeio pela Cidade Histórica"
+        slug:
+          type: string
+          example: "passeio-cidade-historica"
+        description:
+          type: string
+          example: "Um passeio incrível pela cidade histórica com guia especializado"
+        category:
+          type: integer
+          example: 5
+        subcategory:
+          type: integer
+          example: 12
+        brand:
+          type: integer
+          example: 3
+        group_id:
+          type: integer
+          example: 1
+        price:
+          type: number
+          format: float
+          example: 150.00
+        price_per_step:
+          type: number
+          format: float
+          example: 150.00
+        sell_by:
+          type: string
+          example: "unit"
+        step_grams:
+          type: integer
+          nullable: true
+          example: null
+        min_steps:
+          type: integer
+          nullable: true
+          example: null
+        max_steps:
+          type: integer
+          nullable: true
+          example: null
+        has_promotion:
+          type: boolean
+          example: false
+        price_original:
+          type: number
+          format: float
+          example: 150.00
+        price_promo:
+          type: number
+          format: float
+          example: 0.00
+        cust_price:
+          type: number
+          format: float
+          example: 120.00
+        current_price:
+          type: number
+          format: float
+          example: 150.00
+        discount_percentage:
+          type: number
+          format: float
+          example: 0.00
+        stock:
+          type: integer
+          example: 50
+        keywords:
+          type: string
+          example: "passeio, turismo, cidade histórica"
+        sku:
+          type: string
+          example: "TOUR-001"
+        product_code:
+          type: string
+          example: "TOUR-001"
+        case_qty:
+          type: integer
+          nullable: true
+          example: null
+        unit_size:
+          type: number
+          format: float
+          nullable: true
+          example: null
+        unit_unit:
+          type: string
+          nullable: true
+          example: null
+        packaging_label:
+          type: string
+          nullable: true
+          example: null
+        weight:
+          type: string
+          example: ""
+        visible:
+          type: integer
+          example: 1
+        type:
+          type: string
+          example: "tour"
+        in_stock:
+          type: boolean
+          example: true
+        is_visible:
+          type: boolean
+          example: true
+        created_at:
+          type: string
+          example: "2024-01-01 10:00:00"
+        status:
+          type: string
+          example: "active"
+        main_image:
+          type: string
+          format: uri
+          nullable: true
+          example: "https://example.com/images/tour1.jpg"
+        # Campos específicos para tours
+        location:
+          type: string
+          example: "Centro Histórico"
+        address:
+          type: string
+          example: "Praça da Sé, 123 - Centro"
+        duration:
+          type: string
+          example: "4 horas"
+        rating:
+          type: number
+          format: float
+          nullable: true
+          example: 4.8
+        max_participants:
+          type: integer
+          nullable: true
+          example: 20
+        min_participants:
+          type: integer
+          nullable: true
+          example: 2
+        difficulty_level:
+          type: string
+          example: "Fácil"
+        includes:
+          type: string
+          example: "Guia, transporte, lanche"
+        excludes:
+          type: string
+          example: "Almoço, bebidas"
+        meeting_point:
+          type: string
+          example: "Praça da Sé"
+        cancellation_policy:
+          type: string
+          example: "Cancelamento gratuito até 24h antes"
+
+    TourDetail:
+      allOf:
+        - $ref: '#/components/schemas/Tour'
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                  url:
+                    type: string
+                    format: uri
+                  alt_text:
+                    type: string
+
+    Reservation:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        code:
+          type: string
+          example: "SH-A1B2C3D4"
+        tour_id:
+          type: integer
+          example: 456
+        tour_name:
+          type: string
+          example: "Passeio pela Cidade Histórica"
+        date:
+          type: string
+          format: date
+          example: "2024-01-15"
+        adults:
+          type: integer
+          example: 2
+        children:
+          type: integer
+          example: 1
+        total_participants:
+          type: integer
+          example: 3
+        total_price:
+          type: number
+          format: float
+          example: 450.00
+        status:
+          type: string
+          example: "pending"
+        created_at:
+          type: string
+          example: "2024-01-01 10:00:00"
+
+    ReservationDetail:
+      allOf:
+        - $ref: '#/components/schemas/Reservation'
+        - type: object
+          properties:
+            location:
+              type: string
+              example: "Centro Histórico"
+            duration:
+              type: string
+              example: "4 horas"
+            customer_name:
+              type: string
+              example: "João Silva"
+            customer_email:
+              type: string
+              format: email
+              example: "joao@email.com"
+            customer_phone:
+              type: string
+              example: "+55 11 99999-9999"
+            notes:
+              type: string
+              example: "Cliente vegetariano"
+
+    ReservationListItem:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 123
+        reservation_code:
+          type: string
+          example: "SH-A1B2C3D4"
+        reservation_date:
+          type: string
+          format: date
+          example: "2024-01-15"
+        adults:
+          type: integer
+          example: 2
+        children:
+          type: integer
+          example: 1
+        total_participants:
+          type: integer
+          example: 3
+        total_price:
+          type: number
+          format: float
+          example: 450.00
+        customer_name:
+          type: string
+          example: "João Silva"
+        customer_email:
+          type: string
+          format: email
+          example: "joao@email.com"
+        customer_phone:
+          type: string
+          example: "+55 11 99999-9999"
+        notes:
+          type: string
+          example: "Cliente vegetariano"
+        status:
+          type: string
+          example: "pending"
+        created_at:
+          type: string
+          example: "2024-01-01 10:00:00"
+        tour_name:
+          type: string
+          example: "Passeio pela Cidade Histórica"
+        location:
+          type: string
+          example: "Centro Histórico"
+
+    ExtendedProduct:
+      allOf:
+        - $ref: '#/components/schemas/Tour'
+        - type: object
+          properties:
+            check_in_time:
+              type: string
+              example: "14:00"
+            check_out_time:
+              type: string
+              example: "12:00"
+            amenities:
+              type: string
+              example: "WiFi, Ar condicionado, Piscina"
+            policies:
+              type: string
+              example: "Não fumantes, Animais não permitidos"
+
+    ExtendedProductDetail:
+      allOf:
+        - $ref: '#/components/schemas/ExtendedProduct'
+        - type: object
+          properties:
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                  url:
+                    type: string
+                    format: uri
+                  alt_text:
+                    type: string
+
+    TourFilters:
+      type: object
+      properties:
+        search:
+          type: string
+        category_input:
+          type: string
+        category_ids:
+          type: array
+          items:
+            type: integer
+        min_price:
+          type: number
+          format: float
+        max_price:
+          type: number
+          format: float
+        location:
+          type: string
+        duration:
+          type: string
+        order_by:
+          type: string
+        order_direction:
+          type: string
+
+    ReservationFilters:
+      type: object
+      properties:
+        status:
+          type: string
+        tour_id:
+          type: integer
+        date_from:
+          type: string
+          format: date
+        date_to:
+          type: string
+          format: date
+
+    ExtendedProductFilters:
+      type: object
+      properties:
+        search:
+          type: string
+        category_input:
+          type: string
+        category_ids:
+          type: array
+          items:
+            type: integer
+        min_price:
+          type: number
+          format: float
+        max_price:
+          type: number
+          format: float
+        location:
+          type: string
+        type:
+          type: string
+        order_by:
+          type: string
+        order_direction:
+          type: string

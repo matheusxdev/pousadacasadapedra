@@ -1,0 +1,475 @@
+# Endpoints de Checkout para incluir no openapi.yaml principal
+
+  /checkout:
+    get:
+      summary: Informações do checkout
+      description: Retorna informações sobre métodos de pagamento, frete e cupons disponíveis
+      tags:
+        - Checkout
+      responses:
+        '200':
+          description: Informações do checkout
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentMethods'
+        '400':
+          description: Carrinho vazio ou configuração inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /coupons/validate:
+    get:
+      summary: Validar cupom
+      description: Valida um cupom de desconto
+      tags:
+        - Checkout
+      parameters:
+        - name: code
+          in: query
+          required: true
+          description: Código do cupom
+          schema:
+            type: string
+            example: "DESCONTO10"
+      responses:
+        '200':
+          description: Cupom válido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  coupon:
+                    $ref: '#/components/schemas/Coupon'
+                  subtotal:
+                    type: number
+                    format: float
+                  discount:
+                    type: number
+                    format: float
+                  total_after_discount:
+                    type: number
+                    format: float
+        '400':
+          description: Cupom inválido ou carrinho vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /checkout/apply-coupon:
+    post:
+      summary: Aplicar cupom
+      description: Aplica um cupom ao carrinho
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - code
+              properties:
+                code:
+                  type: string
+                  description: Código do cupom
+                  example: "DESCONTO10"
+                stack:
+                  type: boolean
+                  description: Se deve empilhar com cupons existentes
+                  default: false
+      responses:
+        '200':
+          description: Cupom aplicado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Cupom aplicado."
+                  coupon_codes:
+                    type: string
+                    example: "DESCONTO10"
+                  subtotal:
+                    type: number
+                    format: float
+                  discount:
+                    type: number
+                    format: float
+                  total_after_discount:
+                    type: number
+                    format: float
+        '400':
+          description: Cupom inválido ou carrinho vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /checkout/remove-coupon:
+    post:
+      summary: Remover cupom
+      description: Remove um cupom do carrinho
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                code:
+                  type: string
+                  description: Código do cupom a remover (opcional, remove todos se não informado)
+                  example: "DESCONTO10"
+      responses:
+        '200':
+          description: Cupom removido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Cupom removido."
+                  coupon_codes:
+                    type: string
+                    nullable: true
+                  subtotal:
+                    type: number
+                    format: float
+                  discount:
+                    type: number
+                    format: float
+                  total_after_discount:
+                    type: number
+                    format: float
+
+  /checkout/confirm:
+    post:
+      summary: Confirmar pedido
+      description: Cria um pedido a partir do carrinho
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - payment_method
+                - payment_type
+              properties:
+                payment_method:
+                  type: string
+                  enum: ["mercadopago", "efi", "appmax", "stripe"]
+                  example: "mercadopago"
+                payment_type:
+                  type: string
+                  enum: ["pix", "credit_card", "boleto", "cash"]
+                  example: "pix"
+                shipping_method:
+                  type: string
+                  enum: ["correios", "melhor_envio", "fixed", "delivery_km", "pickup"]
+                  example: "correios"
+                coupon_code:
+                  type: string
+                  example: "DESCONTO10"
+                observations:
+                  type: string
+                  example: "Entregar após 18h"
+                address:
+                  type: object
+                  properties:
+                    label:
+                      type: string
+                      example: "Casa"
+                    recipient_name:
+                      type: string
+                      example: "João Silva"
+                    phone:
+                      type: string
+                      example: "11999999999"
+                    street:
+                      type: string
+                      example: "Rua das Flores"
+                    number:
+                      type: string
+                      example: "123"
+                    complement:
+                      type: string
+                      example: "Apto 45"
+                    neighborhood:
+                      type: string
+                      example: "Centro"
+                    city:
+                      type: string
+                      example: "São Paulo"
+                    state:
+                      type: string
+                      example: "SP"
+                    country:
+                      type: string
+                      example: "Brasil"
+                    cep:
+                      type: string
+                      example: "01234567"
+                    latitude:
+                      type: number
+                      format: float
+                    longitude:
+                      type: number
+                      format: float
+                    reference:
+                      type: string
+                      example: "Próximo ao shopping"
+                address_id:
+                  type: integer
+                  description: ID de endereço salvo
+                delivery_address:
+                  type: string
+                  description: Endereço de entrega em texto livre
+      responses:
+        '200':
+          description: Pedido criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Pedido criado com sucesso!"
+                  order_id:
+                    type: integer
+                    example: 12345
+                  total:
+                    type: number
+                    format: float
+                  total_cents:
+                    type: integer
+                  payment_method:
+                    type: string
+                  shipping_method:
+                    type: string
+        '400':
+          description: Dados inválidos ou carrinho vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /quotes:
+    post:
+      summary: Solicitar cotação
+      description: Cria uma cotação a partir do carrinho
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                observations:
+                  type: string
+                  example: "Preciso de orçamento para evento"
+                phone:
+                  type: string
+                  example: "11999999999"
+      responses:
+        '200':
+          description: Cotação enviada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Cotação enviada! Em breve entraremos em contato."
+                  order_id:
+                    type: integer
+                    example: 12345
+                  type:
+                    type: string
+                    example: "quotation"
+                  total:
+                    type: number
+                    format: float
+                  total_cents:
+                    type: integer
+                  status:
+                    type: string
+                    example: "quotation"
+        '400':
+          description: Carrinho vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders:
+    get:
+      summary: Listar pedidos
+      description: Lista pedidos do cliente autenticado
+      tags:
+        - Checkout
+      parameters:
+        - name: status
+          in: query
+          description: Filtrar por status
+          schema:
+            type: string
+            enum: ["pending", "confirmed", "processing", "shipped", "delivered", "cancelled", "quotation"]
+        - name: payment_status
+          in: query
+          description: Filtrar por status de pagamento
+          schema:
+            type: string
+            enum: ["unpaid", "paid", "pending", "failed", "refunded", "not_applicable"]
+        - name: shipping_status
+          in: query
+          description: Filtrar por status de envio
+          schema:
+            type: string
+            enum: ["not_shipped", "shipped", "delivered", "not_applicable"]
+        - name: search
+          in: query
+          description: Buscar por nome ou endereço
+          schema:
+            type: string
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+      responses:
+        '200':
+          description: Lista de pedidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  orders:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        order_date:
+                          type: string
+                          format: date-time
+                        total:
+                          type: number
+                          format: float
+                        status:
+                          type: string
+                        payment_status:
+                          type: string
+                        shipping_status:
+                          type: string
+                        payment_method:
+                          type: string
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: integer
+                      limit:
+                        type: integer
+                      total:
+                        type: integer
+                      pages:
+                        type: integer
+        '401':
+          description: Token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Detalhes do pedido
+      description: Retorna detalhes de um pedido específico
+      tags:
+        - Checkout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+              properties:
+                order_id:
+                  type: integer
+                  description: ID do pedido
+                  example: 12345
+      responses:
+        '200':
+          description: Detalhes do pedido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  order:
+                    $ref: '#/components/schemas/Order'
+        '400':
+          description: ID do pedido obrigatório
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Pedido não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

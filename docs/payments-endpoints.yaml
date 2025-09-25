@@ -1,0 +1,290 @@
+# Endpoints de Pagamentos para incluir no openapi.yaml principal
+
+  /payments/mercadopago:
+    post:
+      summary: Pagamento via Mercado Pago
+      description: Cria um pagamento via Mercado Pago
+      tags:
+        - Pagamentos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+              properties:
+                order_id:
+                  type: integer
+                  description: ID do pedido
+                  example: 12345
+                payment_method_id:
+                  type: string
+                  description: Método de pagamento do Mercado Pago
+                  enum: ["pix", "credit_card", "debit_card", "boleto"]
+                  default: "pix"
+      responses:
+        '200':
+          description: Pagamento criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "1234567890"
+                      status:
+                        type: string
+                        example: "pending"
+                      point_of_interaction:
+                        type: object
+                        properties:
+                          transaction_data:
+                            type: object
+                            properties:
+                              ticket_url:
+                                type: string
+                                format: uri
+                                example: "https://www.mercadopago.com.br/checkout/v1/redirect?pref_id=123456789"
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Pedido não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro na integração
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/mercadopago/webhook/{clientToken}:
+    post:
+      summary: Webhook Mercado Pago
+      description: Webhook para receber notificações do Mercado Pago
+      tags:
+        - Pagamentos
+      security: []
+      parameters:
+        - name: clientToken
+          in: path
+          required: true
+          description: Token do cliente
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                type:
+                  type: string
+                  example: "payment"
+                data:
+                  type: object
+                  properties:
+                    id:
+                      type: string
+                      example: "1234567890"
+      responses:
+        '200':
+          description: Webhook processado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Cliente não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/efi:
+    post:
+      summary: Pagamento via EFI (Gerencianet)
+      description: Cria um pagamento PIX via EFI
+      tags:
+        - Pagamentos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - order_id
+              properties:
+                order_id:
+                  type: integer
+                  description: ID do pedido
+                  example: 12345
+      responses:
+        '200':
+          description: PIX criado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      txid:
+                        type: string
+                        example: "order123451234567890"
+                      calendario:
+                        type: object
+                        properties:
+                          expiracao:
+                            type: integer
+                            example: 3600
+                      loc:
+                        type: object
+                        properties:
+                          id:
+                            type: integer
+                            example: 123456
+                      qrcode:
+                        type: string
+                        example: "00020126580014br.gov.bcb.pix..."
+                      imagemQrcode:
+                        type: string
+                        format: uri
+                        example: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAA..."
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Pedido não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro na integração
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /payments/efi/webhook/{clientToken}:
+    post:
+      summary: Webhook EFI
+      description: Webhook para receber notificações da EFI
+      tags:
+        - Pagamentos
+      security: []
+      parameters:
+        - name: clientToken
+          in: path
+          required: true
+          description: Token do cliente
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                pix:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      txid:
+                        type: string
+                        example: "order123451234567890"
+      responses:
+        '200':
+          description: Webhook processado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '400':
+          description: Token inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Cliente não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /orders/{id}/events:
+    get:
+      summary: Eventos do pedido (SSE)
+      description: Stream de eventos em tempo real para acompanhar status do pedido
+      tags:
+        - Pagamentos
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do pedido
+          schema:
+            type: integer
+            example: 12345
+      responses:
+        '200':
+          description: Stream de eventos
+          content:
+            text/event-stream:
+              schema:
+                type: string
+                example: |
+                  event: status
+                  data: {"status": "pending"}
+                  
+                  event: paid
+                  data: {"type": "paid", "status": "approved", "order_id": 12345, "gateway": "mercadopago"}
+        '404':
+          description: Pedido não encontrado
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "not found"

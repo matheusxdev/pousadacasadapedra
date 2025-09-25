@@ -1,0 +1,169 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:news="http://www.google.com/schemas/sitemap-news/0.9"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- Homepage -->
+  <url>
+    <loc>https://casadapedra.com.br/</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/logo.png</image:loc>
+      <image:title>Casa da Pedra - Turismo e Aventura</image:title>
+      <image:caption>Especialistas em experiências únicas de turismo e aventura</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Tours Listing -->
+  <url>
+    <loc>https://casadapedra.com.br/tours</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Individual Tours -->
+  <url>
+    <loc>https://casadapedra.com.br/tours/aluguel-buggy-buzios</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/tours/buggy-buzios.jpg</image:loc>
+      <image:title>Aluguel de Buggy em Búzios</image:title>
+      <image:caption>Explore as praias de Búzios com um buggy</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://casadapedra.com.br/tours/passeio-barco-buzios</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/tours/barco-buzios.jpg</image:loc>
+      <image:title>Passeio de Barco em Búzios</image:title>
+      <image:caption>Navegue pelas águas cristalinas de Búzios</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://casadapedra.com.br/tours/trilha-pedra-bonita</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/tours/trilha-pedra-bonita.jpg</image:loc>
+      <image:title>Trilha da Pedra Bonita</image:title>
+      <image:caption>Trilha com vista panorâmica da cidade</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://casadapedra.com.br/tours/voo-livre-pedra-bonita</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/tours/voo-livre.jpg</image:loc>
+      <image:title>Voo Livre na Pedra Bonita</image:title>
+      <image:caption>Voe sobre as montanhas de Rio de Janeiro</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://casadapedra.com.br/tours/trilha-pedra-da-gavea</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/tours/pedra-gavea.jpg</image:loc>
+      <image:title>Trilha da Pedra da Gávea</image:title>
+      <image:caption>Desafie-se na trilha mais famosa do Rio</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Accommodations Listing -->
+  <url>
+    <loc>https://casadapedra.com.br/accommodations</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <!-- Individual Accommodations -->
+  <url>
+    <loc>https://casadapedra.com.br/accommodations/pousada-buzios-centro</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/accommodations/pousada-buzios.jpg</image:loc>
+      <image:title>Pousada Búzios Centro</image:title>
+      <image:caption>Conforto no centro de Búzios</image:caption>
+    </image:image>
+  </url>
+
+  <url>
+    <loc>https://casadapedra.com.br/accommodations/hotel-arraial-do-cabo</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+    <image:image>
+      <image:loc>https://casadapedra.com.br/images/accommodations/hotel-arraial.jpg</image:loc>
+      <image:title>Hotel Arraial do Cabo</image:title>
+      <image:caption>Hospedagem com vista para o mar</image:caption>
+    </image:image>
+  </url>
+
+  <!-- Search Pages -->
+  <url>
+    <loc>https://casadapedra.com.br/search</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- About Page -->
+  <url>
+    <loc>https://casadapedra.com.br/about</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Contact Page -->
+  <url>
+    <loc>https://casadapedra.com.br/contact</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+
+  <!-- Blog Pages (if exists) -->
+  <url>
+    <loc>https://casadapedra.com.br/blog</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Terms and Privacy -->
+  <url>
+    <loc>https://casadapedra.com.br/terms</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <url>
+    <loc>https://casadapedra.com.br/privacy</loc>
+    <lastmod>2024-01-20</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+</urlset>

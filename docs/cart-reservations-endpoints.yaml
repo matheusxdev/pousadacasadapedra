@@ -1,0 +1,488 @@
+# Endpoints de Carrinho com Reservas para incluir no openapi.yaml principal
+
+  /cart/reservations/add:
+    post:
+      summary: Adicionar item ao carrinho com dados de reserva
+      description: Adiciona produto ao carrinho com informações específicas para reservas de tours ou hospedagem
+      tags:
+        - Carrinho com Reservas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - product_uuid
+                - item_type
+              properties:
+                product_uuid:
+                  type: string
+                  description: UUID do produto
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                quantity:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Quantidade do produto
+                item_type:
+                  type: string
+                  enum: ["product", "tour", "accommodation"]
+                  description: Tipo do item no carrinho
+                cart_uuid:
+                  type: string
+                  description: UUID do carrinho (opcional, será criado se não fornecido)
+                reservation_data:
+                  type: object
+                  description: Dados específicos da reserva
+                  properties:
+                    # Para tours
+                    reservation_date:
+                      type: string
+                      format: date
+                      description: Data da reserva (obrigatório para tours)
+                      example: "2025-01-20"
+                    adults:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                      description: Número de adultos
+                    children:
+                      type: integer
+                      minimum: 0
+                      default: 0
+                      description: Número de crianças
+                    meeting_point:
+                      type: string
+                      description: Ponto de encontro
+                    # Para hospedagem
+                    check_in_date:
+                      type: string
+                      format: date
+                      description: Data de check-in (obrigatório para hospedagem)
+                      example: "2025-01-20"
+                    check_out_date:
+                      type: string
+                      format: date
+                      description: Data de check-out (obrigatório para hospedagem)
+                      example: "2025-01-23"
+                    nights:
+                      type: integer
+                      description: Número de noites
+                    room_type:
+                      type: string
+                      description: Tipo de quarto
+                    # Campos comuns
+                    special_requests:
+                      type: string
+                      description: Solicitações especiais do cliente
+      responses:
+        '200':
+          description: Item adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Item adicionado ao carrinho com sucesso"
+                  data:
+                    type: object
+                    properties:
+                      cart_uuid:
+                        type: string
+                        example: "cart_65a1b2c3d4e5f6_1705123456"
+                      item_id:
+                        type: integer
+                        example: 123
+                      item_type:
+                        type: string
+                        example: "tour"
+                      reservation_data:
+                        type: object
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/reservations/items/{item_id}:
+    put:
+      summary: Atualizar dados de reserva de um item
+      description: Atualiza informações de reserva de um item específico no carrinho
+      tags:
+        - Carrinho com Reservas
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: ID do item no carrinho
+          schema:
+            type: integer
+            example: 123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: Nova quantidade
+                reservation_data:
+                  type: object
+                  description: Dados atualizados da reserva
+                  properties:
+                    reservation_date:
+                      type: string
+                      format: date
+                    check_in_date:
+                      type: string
+                      format: date
+                    check_out_date:
+                      type: string
+                      format: date
+                    adults:
+                      type: integer
+                      minimum: 1
+                    children:
+                      type: integer
+                      minimum: 0
+                    nights:
+                      type: integer
+                    room_type:
+                      type: string
+                    meeting_point:
+                      type: string
+                    special_requests:
+                      type: string
+      responses:
+        '200':
+          description: Item atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Item atualizado com sucesso"
+        '404':
+          description: Item não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Remover item do carrinho
+      description: Remove um item específico do carrinho
+      tags:
+        - Carrinho com Reservas
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: ID do item no carrinho
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: Item removido com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Item removido do carrinho com sucesso"
+        '404':
+          description: Item não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/reservations/{cart_uuid}:
+    get:
+      summary: Listar itens do carrinho com dados de reserva
+      description: Retorna todos os itens do carrinho com informações detalhadas de reserva
+      tags:
+        - Carrinho com Reservas
+      parameters:
+        - name: cart_uuid
+          in: path
+          required: true
+          description: UUID do carrinho
+          schema:
+            type: string
+            example: "cart_65a1b2c3d4e5f6_1705123456"
+      responses:
+        '200':
+          description: Lista de itens do carrinho
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      cart:
+                        type: object
+                        properties:
+                          uuid:
+                            type: string
+                            example: "cart_65a1b2c3d4e5f6_1705123456"
+                          status:
+                            type: string
+                            enum: ["open", "completed", "cancelled"]
+                            example: "open"
+                          subtotal:
+                            type: number
+                            format: float
+                            example: 360.00
+                          total:
+                            type: number
+                            format: float
+                            example: 360.00
+                          item_count:
+                            type: integer
+                            example: 2
+                          created_at:
+                            type: string
+                            format: date-time
+                          updated_at:
+                            type: string
+                            format: date-time
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 123
+                            product_uuid:
+                              type: string
+                              example: "550e8400-e29b-41d4-a716-446655440000"
+                            name:
+                              type: string
+                              example: "Passeio de Barco em Búzios"
+                            quantity:
+                              type: integer
+                              example: 1
+                            price:
+                              type: number
+                              format: float
+                              example: 120.00
+                            current_price:
+                              type: number
+                              format: float
+                              example: 120.00
+                            item_type:
+                              type: string
+                              enum: ["product", "tour", "accommodation"]
+                              example: "tour"
+                            product_type:
+                              type: string
+                              example: "tour"
+                            description:
+                              type: string
+                            location:
+                              type: string
+                              example: "Búzios"
+                            duration:
+                              type: string
+                              example: "4 horas"
+                            rating:
+                              type: number
+                              format: float
+                              example: 4.5
+                            main_image:
+                              type: string
+                              format: uri
+                            reservation_data:
+                              type: object
+                            reservation_date:
+                              type: string
+                              format: date
+                              example: "2025-01-20"
+                            check_in_date:
+                              type: string
+                              format: date
+                            check_out_date:
+                              type: string
+                              format: date
+                            adults:
+                              type: integer
+                              example: 2
+                            children:
+                              type: integer
+                              example: 1
+                            total_participants:
+                              type: integer
+                              example: 3
+                            nights:
+                              type: integer
+                            room_type:
+                              type: string
+                            meeting_point:
+                              type: string
+                            special_requests:
+                              type: string
+                            check_in_time:
+                              type: string
+                              format: time
+                            check_out_time:
+                              type: string
+                              format: time
+                            amenities:
+                              type: string
+                            cancellation_policy:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                            updated_at:
+                              type: string
+                              format: date-time
+        '404':
+          description: Carrinho não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/reservations/convert:
+    post:
+      summary: Converter carrinho em reservas
+      description: Converte itens de reserva do carrinho em reservas reais no sistema
+      tags:
+        - Carrinho com Reservas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cart_uuid
+                - customer_data
+              properties:
+                cart_uuid:
+                  type: string
+                  description: UUID do carrinho
+                  example: "cart_65a1b2c3d4e5f6_1705123456"
+                customer_data:
+                  type: object
+                  required:
+                    - name
+                    - email
+                  properties:
+                    name:
+                      type: string
+                      description: Nome completo do cliente
+                      example: "João Silva"
+                    email:
+                      type: string
+                      format: email
+                      description: Email do cliente
+                      example: "joao@email.com"
+                    phone:
+                      type: string
+                      description: Telefone do cliente
+                      example: "+55 11 99999-9999"
+      responses:
+        '200':
+          description: Carrinho convertido em reservas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Carrinho convertido em reservas com sucesso"
+                  data:
+                    type: object
+                    properties:
+                      conversion_id:
+                        type: integer
+                        example: 456
+                      cart_uuid:
+                        type: string
+                        example: "cart_65a1b2c3d4e5f6_1705123456"
+                      total_reservations:
+                        type: integer
+                        example: 2
+                      reservations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            reservation_id:
+                              type: integer
+                              example: 789
+                            reservation_code:
+                              type: string
+                              example: "SH-A1B2C3D4"
+                            item_type:
+                              type: string
+                              example: "tour"
+                            product_name:
+                              type: string
+                              example: "Passeio de Barco em Búzios"
+                            reservation_date:
+                              type: string
+                              format: date
+                              example: "2025-01-20"
+                            total_price:
+                              type: number
+                              format: float
+                              example: 360.00
+                            adults:
+                              type: integer
+                              example: 2
+                            children:
+                              type: integer
+                              example: 1
+        '400':
+          description: Dados inválidos ou carrinho vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Carrinho não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

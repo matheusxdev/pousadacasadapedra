@@ -1,0 +1,547 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "rooms": "Habitaciones",
+    "about": "Acerca de Nosotros",
+    "contact": "Contacto",
+    "bookNow": "Reservar Ahora",
+    "tours": "Excursiones",
+    "accommodations": "Alojamientos",
+    "transfers": "Traslados",
+    "cart": "Carrito"
+  },
+  "hero": {
+    "offer": "Obtén hasta 30% de descuento",
+    "title": "Quédate en el corazón de Búzios",
+    "booking": {
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "guests": "Huéspedes",
+      "adults": "Adultos",
+      "children": "Niños",
+      "rooms": "Habitaciones",
+      "room": "Habitación",
+      "viewRooms": "Ver Habitaciones"
+    }
+  },
+  "experience": {
+    "title": "Experiencia",
+    "subtitle": "Descubre experiencias únicas en Búzios",
+    "comingSoon": "Próximamente",
+    "description": "Estamos preparando experiencias increíbles para ti. Pronto, podrás descubrir actividades exclusivas y momentos únicos en Búzios."
+  },
+  "about": {
+    "title": "Acerca de Nosotros",
+    "subtitle": "Conoce nuestra historia y pasión por brindar experiencias únicas en Búzios",
+    "story": {
+      "title": "Nuestra Historia",
+      "description": "Grupo Caminué nació del sueño de crear un espacio único donde nuestros huéspedes puedan vivir experiencias auténticas en Búzios. Ubicada en el corazón de la ciudad, ofrecemos alojamientos cómodos y un servicio personalizado que refleja la hospitalidad brasileña."
+    },
+    "values": {
+      "title": "Nuestros Valores",
+      "passion": {
+        "title": "Pasión",
+        "description": "Somos apasionados por el turismo y por brindar momentos inolvidables a nuestros huéspedes."
+      },
+      "quality": {
+        "title": "Calidad",
+        "description": "Nos comprometemos con la excelencia en todos los aspectos de nuestro servicio e infraestructura."
+      },
+      "service": {
+        "title": "Servicio",
+        "description": "Ofrecemos un servicio personalizado y atento, siempre buscando superar las expectativas."
+      }
+    },
+    "mission": {
+      "title": "Nuestra Misión",
+      "description": "Nuestra misión es ser la referencia en alojamiento en Búzios, brindando experiencias únicas que conecten a nuestros huéspedes con la belleza natural y cultural de la región, siempre con excelencia en el servicio y compromiso con la sostenibilidad."
+    }
+  },
+  "services": {
+    "subtitle": "Servicios",
+    "title": "Nuestros Servicios",
+    "description": "Ofrecemos una experiencia completa de alojamiento en Búzios, con habitaciones cómodas, actividades exclusivas y restaurante de calidad. Nuestro equipo está comprometido en proporcionar momentos inolvidables para todos nuestros huéspedes.",
+    "seeMore": "Ver Más",
+    "stats": {
+      "rooms": "Habitaciones"
+    }
+  },
+  "facilities": {
+    "offer": "Obtén hasta 30% de descuento",
+    "title": "Facilidades que Ofrecemos",
+    "description": "Descubre todas las comodidades y servicios que hemos preparado para hacer tu estadía aún más especial y cómoda."
+  },
+  "recommended": {
+    "title": "Alojamientos Recomendados",
+    "description": "Descubre los alojamientos más buscados y mejor valorados en Búzios, especialmente elegidos para brindar una experiencia única e inolvidable.",
+    "perNight": "por noche",
+    "seeAll": "Ver Todos"
+  },
+  "app": {
+    "title": "Aplicación Disponible En",
+    "searchPlaceholder": "¿A dónde vas?",
+    "heroSubtitle": "Hoteles Extraordinarios con Menor Precio",
+    "viewAccommodations": "Ver Hoteles",
+    "popularDestinations": "Destinos Populares",
+    "downloadOn": "Descargar en",
+    "description1": "Descubre los mejores alojamientos de Búzios directamente desde tu dispositivo móvil. Nuestra aplicación ofrece una experiencia completa para encontrar y reservar tu estadía ideal.",
+    "description2": "Con una interfaz intuitiva y funciones avanzadas, puedes explorar alojamientos, verificar disponibilidad y hacer reservas de forma rápida y segura.",
+    "description3": "Descarga ahora y obtén acceso exclusivo a ofertas especiales y promociones que solo están disponibles en la aplicación móvil."
+  },
+  "dynamicProducts": {
+    "subtitle": "Descubre",
+    "title": "Nuestras Acomodaciones Exclusivas",
+    "description": "Experimenta lo mejor de Búzios en nuestras acomodaciones cuidadosamente seleccionadas, cada una con su personalidad única y comodidad incomparable.",
+    "perNight": "por noche",
+    "bookNow": "Reservar",
+    "viewAll": "Ver Todas las Acomodaciones"
+  },
+  "whyChoose": {
+    "subtitle": "Ventajas Únicas",
+    "title": "¿Por qué Elegir Grupo Caminué?",
+    "description": "Descubre las razones que hacen de nuestra posada la elección perfecta para tu estadía en Búzios. Calidad, comodidad y hospitalidad en cada detalle.",
+    "cta": "Reservar Ahora"
+  },
+  "breadcrumbs": {
+    "home": "Inicio",
+    "transfers": "Traslados"
+  },
+  "transfers": {
+    "title": "Traslados",
+    "metaDescription": "Servicios de traslado de Grupo Caminué - Rent a Car, Transfer Regular y Transfer Privado",
+    "subtitle": "Te conectamos con los mejores destinos",
+    "comingSoon": "Próximamente",
+    "description": "Ofrecemos servicios de traslado completos para tu viaje",
+    "hero": {
+      "title": "TRASLADOS",
+      "subtitle": "Con nuestro servicio de traslado privado de Grupo Caminué, tu experiencia comienza con comodidad y seguridad.",
+      "description": "Nos encargamos de cada detalle para que puedas relajarte y disfrutar de tu viaje."
+    },
+    "detail": {
+      "placeholder": "Más información próximamente",
+      "backToList": "Volver a la lista"
+    },
+    "rentACar": {
+      "title": "RENT A CAR",
+      "metaDescription": "Alquiler de autos en Búzios con comodidad, seguridad y flexibilidad.",
+      "hero": {
+        "lead1": "¡EXPLORA BÚZIOS A TU RITMO!",
+        "lead2": "ALQUILA TU AUTO Y VIVE UNA AVENTURA INOLVIDABLE.",
+        "description": "¿Sueñas con explorar las hermosas playas de Búzios con total libertad? ¡Tenemos la solución perfecta para ti! Alquila un auto y descubre cada rincón de este paraíso carioca a tu propio ritmo.",
+        "cta": "Verificar disponibilidad"
+      },
+      "requirements": {
+        "title": "¿Qué necesitas para alquilar?",
+        "age": {
+          "title": "Edad",
+          "description": "La edad mínima es 26 años (requisito de seguro)."
+        },
+        "documentation": {
+          "title": "Documentación",
+          "description": "Licencia de conducir, documento de identidad y tarjeta de crédito física como garantía."
+        },
+        "cars": {
+          "title": "Autos",
+          "capacity": {
+            "title": "Capacidad",
+            "description": "Hasta 5 personas."
+          },
+          "mileage": {
+            "title": "Kilometraje",
+            "description": "Libre en la región de Lagos (no incluye Río de Janeiro)."
+          },
+          "comfort": {
+            "title": "Comodidad",
+            "description": "Disfruta de un viaje seguro y tranquilo."
+          }
+        }
+      },
+      "important": {
+        "title": "Importante",
+        "fuel": {
+          "title": "Combustible",
+          "description": "No incluido."
+        },
+        "insurance": {
+          "title": "Seguro",
+          "description": "Incluido. Consulta las condiciones del seguro si tienes alguna duda con el personal que entrega y/o recoge el vehículo."
+        }
+      },
+      "whyChoose": {
+        "title": "¿POR QUÉ ELEGIRNOS?",
+        "flexibility": "Flexibilidad — Tú eliges cómo y cuándo explorar, ¡tienes 24 horas!",
+        "comfort": "Comodidad — Recogemos el vehículo en tu alojamiento sin costo adicional.",
+        "variety": "Variedad — Tenemos varios jeeps para familias grandes y aventureros, y autos para aquellos que prefieren un paseo más tranquilo.",
+        "unlimitedMileage": "Kilometraje ilimitado — ¡Explora Búzios sin preocuparte por la distancia!",
+        "insurance": "Seguro — Todos nuestros vehículos están asegurados."
+      },
+      "form": {
+        "title": "Verificar Disponibilidad",
+        "intro": "Completa el formulario y verifica la disponibilidad para tu próxima reserva. Responderemos lo antes posible.",
+        "pickupDate": "Fecha de recogida",
+        "returnDate": "Fecha de devolución",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "age": "Edad",
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "question": "¿Alguna pregunta específica?",
+        "questionPlaceholder": "Cuéntanos más sobre tus necesidades...",
+        "submit": "Tengo interés en reservar",
+        "success": {
+          "title": "¡Recibimos tu solicitud!",
+          "message": "Te contactaremos pronto."
+        }
+      }
+    },
+    "regular": {
+      "title": "TRANSFER REGULAR",
+      "metaDescription": "Transfer regular compartido entre Búzios y Río de Janeiro. US$ 150 por persona incluyendo equipaje.",
+      "hero": {
+        "description": "Es un traslado compartido con otras personas donde los horarios de salida, retraso y llegada son determinados por la empresa.",
+        "price": "El costo es de US$ 150 por persona, incluyendo equipaje.",
+        "cta": "Verificar disponibilidad"
+      },
+      "transferOut": {
+        "title": "Servicio de TRANSFER OUT BÚZIOS X RÍO",
+        "hotels": "HOTELES — Solo desembarcamos en Copacabana, Leblon e Ipanema mediante presentación de la reserva del hotel del cliente antes de la reserva.",
+        "airport": "AEROPUERTO — Solo con número de vuelo y horario de despegue."
+      },
+      "transferIn": {
+        "title": "Servicio de TRANSFER IN RÍO X BÚZIOS",
+        "hotels": "HOTELES y POSADAS — Ubicados solo en la carretera principal Av. José Bento Ribeiro Dantas y alrededores. No realiza llegadas a residencias particulares, ni calles pequeñas o con elevaciones altas.",
+        "alternative": "Si no puedes parar en hoteles o posadas específicos, haz una parada en las calles cercanas."
+      },
+      "reservations": {
+        "title": "Reservas",
+        "description": "Se realizan solo mediante pago anticipado del 100% del servicio."
+      },
+      "important": {
+        "title": "Importante",
+        "availability": "Antes del pago, la disponibilidad debe ser confirmada con al menos 24 horas de anticipación.",
+        "payment": "Pagos solo con autorización previa del departamento operacional (confirmada vía WhatsApp).",
+        "flightInfo": "Es obligatorio enviar información de vuelo por WhatsApp para verificar horarios, disponibilidad y confirmar la reserva."
+      },
+      "form": {
+        "title": "Completa el formulario",
+        "serviceDate": "Fecha en que deseas el servicio",
+        "people": "Número de personas",
+        "selectPeople": "Seleccionar",
+        "originCity": "Ciudad de Origen",
+        "destinationCity": "Ciudad de Destino",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "question": "¿Alguna pregunta específica?",
+        "submit": "Tengo interés en reservar",
+        "success": "Recibimos tu solicitud. Te contactaremos pronto."
+      }
+    },
+    "private": {
+      "title": "Traslado Privado",
+      "kicker": "Nuestros servicios de traslado privado",
+      "metaDescription": "Transfer privado exclusivo entre Búzios y Río de Janeiro con máxima comodidad y flexibilidad.",
+      "hero": {
+        "copyLine1": "Vamos a todas las regiones de Río de Janeiro, verificamos disponibilidad para São Paulo, Salvador y Bahía, Minas Gerais, etc.",
+        "cta": "Verificar disponibilidad"
+      },
+      "about": {
+        "title": "Sobre el servicio",
+        "paragraph": "Es un traslado privativo donde viajan solamente el contratante y las personas por él elegidas. El horario de salida es definido por el contratante. Valor de Búzios para Río y viceversa a partir de US$ 600 por tramo hasta 4 pasajeros, incluyendo 2 maletas de 30 kg y 2 de 10 kg por tramo. Para más personas y/o más equipajes, consultar."
+      },
+      "flight": {
+        "title": "Si tienes un vuelo",
+        "b1": "Recomendamos salir con al menos 6 horas de anticipación del horario del vuelo para evitar retrasos.",
+        "b2": "Como el horario es definido por el pasajero, la empresa no se responsabiliza por pérdida de vuelo.",
+        "b3": "Informa el número de vuelo para que podamos acompañar posibles alteraciones."
+      },
+      "booking": {
+        "title": "Reservas",
+        "p": "Servicios disponibles mediante pago anticipado del 100% y envío de la información del vuelo vía WhatsApp. Después del formulario, te contactaremos para confirmar disponibilidad y detalles."
+      },
+      "form": {
+        "title": "Solicitar cotización",
+        "date": "Fecha en que deseas el servicio",
+        "people": "Número de personas",
+        "origin": "Ciudad de Origen",
+        "destination": "Ciudad de Destino",
+        "firstName": "Nombre",
+        "lastName": "Apellido",
+        "email": "Email",
+        "whatsapp": "WhatsApp",
+        "notes": "¿Alguna pregunta específica?",
+        "submit": "Tengo interés en reservar",
+        "success": "¡Recibimos tu solicitud! Te contactaremos pronto."
+      }
+    }
+  },
+  "home": {
+    "hero": {
+      "title": "Descubre Experiencias Únicas",
+      "subtitle": "Explora destinos increíbles con nuestros tours y alojamientos exclusivos",
+      "cta": "Explorar Ahora",
+      "slide1": {
+        "title": "Descubre Experiencias Únicas",
+        "subtitle": "Explora destinos increíbles con nuestros tours y alojamientos exclusivos",
+        "cta": "Explorar Ahora"
+      },
+      "slide2": {
+        "title": "Aventuras Inolvidables",
+        "subtitle": "Crea recuerdos que durarán para siempre con nuestras experiencias únicas",
+        "cta": "Comenzar Ahora"
+      },
+      "slide3": {
+        "title": "Alojamientos de Calidad",
+        "subtitle": "Descansa en alojamientos cuidadosamente seleccionados para tu comodidad",
+        "cta": "Ver Alojamientos"
+      }
+    },
+    "search": {
+      "where": "Buscar destinos",
+      "checkin": "Check-in",
+      "checkout": "Check-out",
+      "guests": "Huéspedes",
+      "search": "Buscar"
+    },
+    "sections": {
+      "featured": "Destacados",
+      "tours": "Excursiones",
+      "accommodations": "Alojamientos",
+      "categories": "Explorar por Categoría",
+      "subtitle": "Descubre experiencias únicas organizadas por tipo de actividad",
+      "seeAll": "Ver todos",
+      "seeAllTours": "Ver todas las excursiones",
+      "seeAllAccommodations": "Ver todos los alojamientos"
+    },
+    "categories": {
+      "adventure": {
+        "title": "Aventura",
+        "description": "Senderismo, escalada, rafting y mucho más"
+      },
+      "culture": {
+        "title": "Cultura",
+        "description": "Museos, monumentos e historia local"
+      },
+      "nature": {
+        "title": "Naturaleza",
+        "description": "Parques, senderos y vida silvestre"
+      },
+      "experiences": {
+        "title": "Experiencias",
+        "description": "Actividades especiales y exclusivas"
+      }
+    }
+  },
+  "common": {
+    "viewDetails": "Ver detalles",
+    "consultPrice": "Consultar precio",
+    "rating": "Calificación",
+    "location": "Ubicación",
+    "duration": "Duración",
+    "promotion": "Promoción",
+    "new": "Nuevo",
+    "popular": "Popular",
+    "loading": "Cargando...",
+    "error": "Error",
+    "retry": "Reintentar",
+    "noResults": "No se encontraron resultados",
+    "close": "Cerrar",
+    "emptyCart": "Tu carrito está vacío",
+    "priceSummary": "Resumen de Precio",
+    "subtotal": "Subtotal",
+    "goToCart": "Ir al carrito",
+    "explore": "Explorar",
+    "search": "Buscar",
+    "allLocations": "Todas las ubicaciones",
+    "allCategories": "Todas las categorías",
+    "allPrices": "Todos los precios",
+    "under100": "Hasta $100",
+    "100to300": "$100 - $300",
+    "300to500": "$300 - $500",
+    "over500": "Más de $500",
+    "tryAgain": "Intentar de nuevo",
+    "clearFilters": "Limpiar filtros",
+    "previous": "Anterior",
+    "next": "Siguiente",
+    "adults": "Adultos",
+    "children": "Niños",
+    "people": "personas",
+    "nights": "noches",
+    "backToTours": "Volver a excursiones",
+    "goTo": "Ir a",
+    "taxes": "Impuestos",
+    "total": "Total",
+    "reserveNow": "Reservar Ahora",
+    "allTypes": "Todos los tipos",
+    "under150": "Hasta $150",
+    "150to300": "$150 - $300",
+    "perNight": "por noche",
+    "checkin": "Check-in",
+    "checkout": "Check-out",
+    "backToHome": "Volver al inicio",
+    "viewDetails": "Ver detalles"
+  },
+  "calendar": {
+    "selectedDates": "Fechas Seleccionadas",
+    "available": "Disponible",
+    "unavailable": "No disponible",
+    "partial": "Parcialmente disponible",
+    "selected": "Seleccionado",
+    "previousMonth": "Mes anterior",
+    "nextMonth": "Próximo mes",
+    "selectDate": "Selecciona una fecha",
+    "calendarGrid": "Cuadrícula del calendario - usa las flechas para navegar, Enter para seleccionar",
+    "keyboardInstructions": "Usa las flechas para navegar, Enter para seleccionar, Home/End para primer/último día disponible"
+  },
+  "price": {
+    "from": "Desde",
+    "perPerson": "por persona",
+    "perNight": "por noche",
+    "original": "Original",
+    "promotional": "Promocional"
+  },
+  "tours": {
+    "subtitle": "Descubre nuestros increíbles tours y experiencias únicas",
+    "noResultsDescription": "No pudimos encontrar tours que coincidan con tus criterios de búsqueda.",
+    "description": "Descripción",
+    "details": "Detalles",
+    "duration": "Duración",
+    "capacity": "Capacidad",
+    "minNights": "Noches mínimas",
+    "includes": "Incluye",
+    "itinerary": "Itinerario",
+    "bookNow": "Reservar ahora",
+    "participants": "Participantes"
+  },
+  "tour": {
+    "description": "Descripción",
+    "details": "Detalles",
+    "duration": "Duración",
+    "capacity": "Capacidad",
+    "minNights": "Noches mínimas",
+    "includes": "Incluye",
+    "excludes": "No incluye",
+    "itinerary": "Itinerario",
+    "bookNow": "Reservar ahora",
+    "participants": "Participantes",
+    "importantInfo": "Información Importante",
+    "meetingPoint": "Punto de Encuentro",
+    "cancellationPolicy": "Política de Cancelación",
+    "difficultyLevel": "Nivel de Dificultad",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out"
+  },
+  "accommodation": {
+    "description": "Descripción",
+    "details": "Detalles",
+    "amenities": "Comodidades",
+    "policies": "Políticas",
+    "checkInTime": "Check-in",
+    "checkOutTime": "Check-out",
+    "minNights": "Noches mínimas",
+    "maxNights": "Noches máximas",
+    "bookNow": "Reservar ahora",
+    "guests": "Huéspedes",
+    "importantInfo": "Información Importante",
+    "checkIn": "Check-in",
+    "checkOut": "Check-out"
+  },
+  "footer": {
+    "description": "Descubre experiencias únicas en turismo y alojamiento",
+    "quickLinks": "Enlaces Rápidos",
+    "contact": "Contacto",
+    "phone": "+55 (11) 99999-9999",
+    "email": "contacto at casadapedra.com.br",
+    "address": "Rua das Flores, 123 - Centro",
+    "copyright": "© 2024 Grupo Caminué. Todos los derechos reservados.",
+    "imageNotAvailable": "Imagen no disponible"
+  },
+  "languages": {
+    "pt": "Português",
+    "en": "English",
+    "es": "Español"
+  },
+  "error": {
+    "goHome": "Ir al inicio",
+    "goBack": "Volver",
+    "tryAgain": "Intentar de nuevo",
+    "showDetails": "Mostrar detalles técnicos",
+    "notFound": {
+      "title": "Página no encontrada",
+      "message": "La página que buscas no existe o ha sido movida.",
+      "suggestions": "Tal vez quieras visitar:"
+    },
+    "serverError": {
+      "title": "Error interno del servidor",
+      "message": "Ocurrió un error interno. Nuestro equipo ha sido notificado y está trabajando para resolver el problema.",
+      "status": "Código de error:",
+      "help": "Si el problema persiste, contáctanos.",
+      "contact": "Contáctanos"
+    },
+    "boundary": {
+      "title": "Algo salió mal",
+      "message": "Ocurrió un error inesperado. Intenta recargar la página o contáctanos si el problema persiste.",
+      "report": "Reportar error"
+    },
+    "api": {
+      "title": "Problema de Conexión",
+      "message": "No se pudo conectar con nuestros servidores. Verifica tu conexión a internet e intenta de nuevo."
+    }
+  },
+  "accommodations": {
+    "subtitle": "Encuentra el alojamiento perfecto para tu viaje",
+    "noResultsDescription": "No encontramos alojamientos que coincidan con tus criterios de búsqueda.",
+    "filters": {
+      "location": "Ubicación",
+      "type": "Tipo",
+      "price": "Precio",
+      "amenities": "Comodidades"
+    },
+    "types": {
+      "hotel": "Hotel",
+      "pousada": "Posada",
+      "hostel": "Hostal",
+      "apartment": "Apartamento"
+    },
+    "checkInOut": "Check-in y Check-out",
+    "participants": "Participantes"
+  },
+  "accommodation": {
+    "checkInOut": "Check-in y Check-out",
+    "participants": "Participantes",
+    "description": "Descripción",
+    "amenities": "Comodidades",
+    "policies": "Políticas",
+    "bookNow": "Reservar Ahora"
+  },
+  "reviews": {
+    "totalReviews": "reseñas",
+    "verified": "verificadas",
+    "sort": {
+      "newest": "Más recientes",
+      "oldest": "Más antiguas",
+      "ratingHigh": "Mejor calificación",
+      "ratingLow": "Peor calificación"
+    },
+    "helpful": "Útil",
+    "loadMore": "Cargar más reseñas"
+  },
+  "search": {
+    "title": "Encuentra tu experiencia perfecta",
+    "subtitle": "Descubre tours y alojamientos increíbles",
+    "placeholder": "¿A dónde quieres ir?",
+    "type": "Tipo",
+    "allTypes": "Todos los tipos",
+    "tours": "Tours",
+    "accommodations": "Alojamientos",
+    "category": "Categoría",
+    "allCategories": "Todas las categorías",
+    "date": "Fecha",
+    "participants": "Participantes",
+    "button": "Buscar"
+  },
+  "whatsapp": {
+    "tooltip": "Chatear en WhatsApp"
+  }
+}

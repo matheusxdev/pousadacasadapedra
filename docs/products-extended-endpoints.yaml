@@ -1,0 +1,130 @@
+# Endpoints de Produtos Estendidos para incluir no openapi.yaml principal
+
+  /products/extended:
+    get:
+      summary: Listar produtos com campos estendidos
+      description: Lista produtos com campos específicos para tours/pousadas/passeios
+      tags:
+        - Produtos Estendidos
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Termo de busca
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: ID ou nome da categoria
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Preço mínimo
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Preço máximo
+          schema:
+            type: number
+            format: float
+        - name: location
+          in: query
+          description: Localização do produto
+          schema:
+            type: string
+        - name: type
+          in: query
+          description: Tipo do produto
+          schema:
+            type: string
+            enum: ["tour", "accommodation", "product"]
+        - name: order_by
+          in: query
+          description: Campo para ordenação
+          schema:
+            type: string
+            enum: ["name", "price", "priceant", "pricepromo", "custprice", "stock", "data", "date", "rating", "location"]
+            default: "name"
+        - name: order_direction
+          in: query
+          description: Direção da ordenação
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: "ASC"
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de produtos com campos estendidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExtendedProduct'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/ExtendedProductFilters'
+
+  /products/extended/{uuid}:
+    get:
+      summary: Detalhes do produto estendido
+      description: Busca produto por UUID com campos específicos para tours/pousadas
+      tags:
+        - Produtos Estendidos
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: UUID do produto
+          schema:
+            type: string
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Detalhes do produto estendido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ExtendedProductDetail'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

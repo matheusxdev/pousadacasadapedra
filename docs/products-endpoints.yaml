@@ -1,0 +1,463 @@
+# Endpoints de Produtos para incluir no openapi.yaml principal
+
+  /products:
+    get:
+      summary: Listar produtos
+      description: Lista produtos com paginação, filtros e busca
+      tags:
+        - Produtos
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Termo de busca
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: ID ou nome da categoria
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Preço mínimo
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Preço máximo
+          schema:
+            type: number
+            format: float
+        - name: order_by
+          in: query
+          description: Campo para ordenação
+          schema:
+            type: string
+            enum: ["name", "price", "priceant", "pricepromo", "custprice", "stock", "data", "date"]
+            default: "name"
+        - name: order_direction
+          in: query
+          description: Direção da ordenação
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: "ASC"
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/ProductFilters'
+
+    post:
+      summary: Listar produtos (POST)
+      description: Lista produtos usando POST com filtros no body
+      tags:
+        - Produtos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                page:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                limit:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 10
+                search:
+                  type: string
+                category:
+                  type: string
+                min_price:
+                  type: number
+                  format: float
+                max_price:
+                  type: number
+                  format: float
+                order_by:
+                  type: string
+                  enum: ["name", "price", "priceant", "pricepromo", "custprice", "stock", "data", "date"]
+                  default: "name"
+                order_direction:
+                  type: string
+                  enum: ["ASC", "DESC"]
+                  default: "ASC"
+                cache:
+                  type: boolean
+                  default: true
+      responses:
+        '200':
+          description: Lista de produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/ProductFilters'
+
+  /products/details:
+    post:
+      summary: Detalhes do produto
+      description: Busca produto por UUID ou slug com informações completas
+      tags:
+        - Produtos
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uuid:
+                  type: string
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                slug:
+                  type: string
+                  example: "produto-exemplo"
+      responses:
+        '200':
+          description: Detalhes do produto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/Product'
+                      - type: object
+                        properties:
+                          images:
+                            type: array
+                            items:
+                              type: object
+                              properties:
+                                uuid:
+                                  type: string
+                                url:
+                                  type: string
+                                  format: uri
+                                alt_text:
+                                  type: string
+                          variations:
+                            type: object
+                            additionalProperties:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  value:
+                                    type: string
+                                  price_adjustment:
+                                    type: number
+                                    format: float
+                                  stock:
+                                    type: integer
+                                  available:
+                                    type: boolean
+                          related_products:
+                            type: array
+                            items:
+                              $ref: '#/components/schemas/Product'
+        '400':
+          description: UUID ou slug obrigatório
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/{uuid}:
+    get:
+      summary: Produto por UUID
+      description: Busca produto por UUID (versão GET)
+      tags:
+        - Produtos
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: UUID do produto
+          schema:
+            type: string
+            example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Dados do produto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /products/categories:
+    get:
+      summary: Categorias de produtos
+      description: Lista categorias com produtos organizados
+      tags:
+        - Produtos
+      parameters:
+        - name: refresh
+          in: query
+          description: Força atualização do cache
+          schema:
+            type: boolean
+            default: false
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                        name:
+                          type: string
+                        slug:
+                          type: string
+                        status:
+                          type: string
+                        product_count:
+                          type: integer
+                        products:
+                          type: array
+                          items:
+                            $ref: '#/components/schemas/Product'
+                        subcategories:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              id:
+                                type: integer
+                              idCategory:
+                                type: integer
+                              name:
+                                type: string
+                              slug:
+                                type: string
+                              status:
+                                type: string
+                              product_count:
+                                type: integer
+                              products:
+                                type: array
+                                items:
+                                  $ref: '#/components/schemas/Product'
+
+  /products/featured:
+    get:
+      summary: Produtos em destaque
+      description: Lista produtos em destaque
+      tags:
+        - Produtos
+      parameters:
+        - name: limit
+          in: query
+          description: Número de produtos
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 48
+            default: 8
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de produtos em destaque
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uuid:
+                          type: string
+                        name:
+                          type: string
+                        slug:
+                          type: string
+                        priceAnt:
+                          type: number
+                          format: float
+                        pricePromo:
+                          type: number
+                          format: float
+                        current_price:
+                          type: number
+                          format: float
+                        discount_percentage:
+                          type: number
+                          format: float
+                        stock:
+                          type: integer
+                        image:
+                          type: string
+                          format: uri
+
+  /products/promotions:
+    get:
+      summary: Produtos em promoção
+      description: Lista apenas produtos com desconto
+      tags:
+        - Produtos
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 48
+            default: 12
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de produtos em promoção
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        uuid:
+                          type: string
+                        name:
+                          type: string
+                        slug:
+                          type: string
+                        priceAnt:
+                          type: number
+                          format: float
+                        pricePromo:
+                          type: number
+                          format: float
+                        current_price:
+                          type: number
+                          format: float
+                        discount_percentage:
+                          type: number
+                          format: float
+                        stock:
+                          type: integer
+                        image:
+                          type: string
+                          format: uri
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'

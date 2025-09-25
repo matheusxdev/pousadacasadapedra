@@ -1,0 +1,303 @@
+# Endpoints de Reservas para incluir no openapi.yaml principal
+
+  /reservations:
+    post:
+      summary: Criar nova reserva
+      description: Cria uma nova reserva para um tour/passeio
+      tags:
+        - Reservas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - tour_id
+                - date
+                - adults
+              properties:
+                tour_id:
+                  type: string
+                  format: uuid
+                  description: UUID do tour
+                  example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+                date:
+                  type: string
+                  format: date
+                  description: Data da reserva (YYYY-MM-DD)
+                  example: "2024-01-15"
+                adults:
+                  type: integer
+                  minimum: 1
+                  description: Número de adultos
+                  example: 2
+                children:
+                  type: integer
+                  minimum: 0
+                  description: Número de crianças
+                  default: 0
+                  example: 1
+                customer_name:
+                  type: string
+                  description: Nome do cliente
+                  example: "João Silva"
+                customer_email:
+                  type: string
+                  format: email
+                  description: Email do cliente
+                  example: "joao@email.com"
+                customer_phone:
+                  type: string
+                  description: Telefone do cliente
+                  example: "+55 11 99999-9999"
+                notes:
+                  type: string
+                  description: Observações adicionais
+                  example: "Cliente vegetariano"
+      responses:
+        '200':
+          description: Reserva criada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Reservation'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Tour não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    get:
+      summary: Listar reservas
+      description: Lista reservas com filtros opcionais
+      tags:
+        - Reservas
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Status da reserva
+          schema:
+            type: string
+            enum: ["pending", "confirmed", "cancelled"]
+        - name: tour_id
+          in: query
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+        - name: date_from
+          in: query
+          description: Data inicial (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: Data final (YYYY-MM-DD)
+          schema:
+            type: string
+            format: date
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de reservas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ReservationListItem'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/ReservationFilters'
+
+  /reservations/{code}:
+    get:
+      summary: Buscar reserva por código
+      description: Busca uma reserva específica pelo código
+      tags:
+        - Reservas
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código da reserva
+          schema:
+            type: string
+            example: "SH-A1B2C3D4"
+      responses:
+        '200':
+          description: Dados da reserva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ReservationDetail'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Atualizar reserva
+      description: Atualiza dados de uma reserva existente
+      tags:
+        - Reservas
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código da reserva
+          schema:
+            type: string
+            example: "SH-A1B2C3D4"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                customer_name:
+                  type: string
+                  description: Nome do cliente
+                customer_email:
+                  type: string
+                  format: email
+                  description: Email do cliente
+                customer_phone:
+                  type: string
+                  description: Telefone do cliente
+                notes:
+                  type: string
+                  description: Observações adicionais
+                status:
+                  type: string
+                  enum: ["pending", "confirmed", "cancelled"]
+                  description: Status da reserva
+      responses:
+        '200':
+          description: Reserva atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Reserva atualizada com sucesso"
+        '400':
+          description: Dados inválidos ou reserva não pode ser editada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Cancelar reserva
+      description: Cancela uma reserva existente
+      tags:
+        - Reservas
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código da reserva
+          schema:
+            type: string
+            example: "SH-A1B2C3D4"
+      responses:
+        '200':
+          description: Reserva cancelada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Reserva cancelada com sucesso"
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

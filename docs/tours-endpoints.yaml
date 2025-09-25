@@ -1,0 +1,185 @@
+# Endpoints de Tours/Passeios para incluir no openapi.yaml principal
+
+  /tours:
+    get:
+      summary: Listar tours/passeios
+      description: Lista tours com paginação, filtros e busca específicos para passeios
+      tags:
+        - Tours
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: search
+          in: query
+          description: Termo de busca
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: ID ou nome da categoria
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Preço mínimo
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Preço máximo
+          schema:
+            type: number
+            format: float
+        - name: location
+          in: query
+          description: Localização do tour
+          schema:
+            type: string
+        - name: duration
+          in: query
+          description: Duração do tour
+          schema:
+            type: string
+        - name: order_by
+          in: query
+          description: Campo para ordenação
+          schema:
+            type: string
+            enum: ["name", "price", "priceant", "pricepromo", "custprice", "stock", "data", "date", "duration", "rating"]
+            default: "name"
+        - name: order_direction
+          in: query
+          description: Direção da ordenação
+          schema:
+            type: string
+            enum: ["ASC", "DESC"]
+            default: "ASC"
+        - name: nocache
+          in: query
+          description: Bypass do cache
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de tours
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tour'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    $ref: '#/components/schemas/TourFilters'
+
+  /tours/{id}:
+    get:
+      summary: Detalhes do tour
+      description: Busca tour por ID com informações completas
+      tags:
+        - Tours
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+      responses:
+        '200':
+          description: Detalhes do tour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/TourDetail'
+        '404':
+          description: Tour não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /tours/{id}/availability:
+    get:
+      summary: Disponibilidade do tour
+      description: Lista datas disponíveis para reserva em um mês/ano específico
+      tags:
+        - Tours
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        - name: year
+          in: query
+          description: Ano
+          schema:
+            type: integer
+            minimum: 2020
+            maximum: 2030
+            default: 2024
+        - name: month
+          in: query
+          description: Mês (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            default: 1
+      responses:
+        '200':
+          description: Datas disponíveis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                      format: date
+                      example: "2024-01-15"
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

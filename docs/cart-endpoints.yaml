@@ -1,0 +1,156 @@
+# Endpoints de Carrinho para incluir no openapi.yaml principal
+
+  /cart/add:
+    post:
+      summary: Adicionar produto ao carrinho
+      description: Adiciona um produto ao carrinho do cliente
+      tags:
+        - Carrinho
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idProduct
+                - quantity
+              properties:
+                idProduct:
+                  type: string
+                  description: UUID do produto
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                quantity:
+                  type: integer
+                  description: Quantidade (em passos para produtos por kg)
+                  minimum: 1
+                  example: 2
+      responses:
+        '200':
+          description: Produto adicionado ao carrinho
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart:
+    get:
+      summary: Obter carrinho
+      description: Retorna o carrinho do cliente autenticado
+      tags:
+        - Carrinho
+      responses:
+        '200':
+          description: Dados do carrinho
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Cart'
+
+  /cart/update:
+    put:
+      summary: Atualizar quantidade no carrinho
+      description: Atualiza a quantidade de um produto no carrinho
+      tags:
+        - Carrinho
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idProduct
+                - quantity
+              properties:
+                idProduct:
+                  type: string
+                  description: UUID do produto
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                quantity:
+                  type: integer
+                  description: Nova quantidade
+                  minimum: 0
+                  example: 3
+      responses:
+        '200':
+          description: Quantidade atualizada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          description: Carrinho não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/item:
+    delete:
+      summary: Remover item do carrinho
+      description: Remove um produto do carrinho
+      tags:
+        - Carrinho
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - idProduct
+              properties:
+                idProduct:
+                  type: string
+                  description: UUID do produto
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+      responses:
+        '200':
+          description: Item removido do carrinho
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '404':
+          description: Carrinho não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/clear:
+    delete:
+      summary: Limpar carrinho
+      description: Remove todos os itens do carrinho
+      tags:
+        - Carrinho
+      responses:
+        '200':
+          description: Carrinho limpo
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true

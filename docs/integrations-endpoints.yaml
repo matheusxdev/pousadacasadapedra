@@ -1,0 +1,122 @@
+# Endpoints de Integrações para incluir no openapi.yaml principal
+
+  /integrations/appmax/validate:
+    get:
+      summary: Validar integração Appmax (GET)
+      description: Valida e configura integração com Appmax via GET
+      tags:
+        - Integrações
+      security: []
+      parameters:
+        - name: app_id
+          in: query
+          description: ID da aplicação Appmax
+          schema:
+            type: string
+        - name: client_id
+          in: query
+          description: Client ID da aplicação
+          schema:
+            type: string
+        - name: client_secret
+          in: query
+          description: Client Secret da aplicação
+          schema:
+            type: string
+        - name: external_key
+          in: query
+          description: Chave externa (ID da loja)
+          schema:
+            type: string
+        - name: env
+          in: query
+          description: Ambiente
+          schema:
+            type: string
+            enum: ["sandbox", "production"]
+            default: "production"
+      responses:
+        '302':
+          description: Redirecionamento para painel
+          headers:
+            Location:
+              schema:
+                type: string
+                example: "https://starhubsolutions.com/app/integrations/appmax?installed=1"
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    post:
+      summary: Validar integração Appmax (POST)
+      description: Valida e configura integração com Appmax via POST
+      tags:
+        - Integrações
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - client_id
+                - client_secret
+                - external_key
+              properties:
+                app_id:
+                  type: string
+                  description: ID da aplicação Appmax
+                client_id:
+                  type: string
+                  description: Client ID da aplicação
+                  example: "app_123456789"
+                client_secret:
+                  type: string
+                  description: Client Secret da aplicação
+                  example: "secret_abcdef123456"
+                external_key:
+                  type: string
+                  description: Chave externa (ID da loja)
+                  example: "store_123"
+                env:
+                  type: string
+                  enum: ["sandbox", "production"]
+                  default: "production"
+      responses:
+        '200':
+          description: Integração configurada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  external_id:
+                    type: string
+                    description: ID externo criptografado
+                    example: "encrypted_store_id_123"
+                  alias:
+                    type: string
+                    description: Nome da loja
+                    example: "Minha Loja"
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

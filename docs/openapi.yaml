@@ -1,0 +1,3593 @@
+openapi: 3.0.3
+info:
+  title: StarHub API - Sistema de Reservas e Tours
+  description: |
+    API completa para sistema de reservas de tours, passeios e hospedagem.
+    
+    ## Autenticação
+    Todas as requisições devem incluir o header `x-starhub-token` com o token do cliente.
+    
+    ## Rate Limiting
+    A API implementa rate limiting granular com headers informativos em todas as respostas:
+    
+    ### Headers de Rate Limiting
+    - `X-RateLimit-Limit`: Limite total de requisições
+    - `X-RateLimit-Remaining`: Requisições restantes no período atual
+    - `X-RateLimit-Reset`: Timestamp Unix quando o rate limit reseta
+    - `Retry-After`: Segundos para aguardar antes de tentar novamente (apenas quando rate limit é atingido)
+    - `X-RateLimit-Type`: Tipo de limite (global, authentication, payment, etc.)
+    - `X-RateLimit-User-Type`: Tipo de usuário (guest, authenticated, premium, admin)
+    - `X-RateLimit-Endpoint`: Endpoint específico (apenas no AdvancedRateLimitMiddleware)
+    - `X-RateLimit-Critical`: Indica se é uma operação crítica (apenas no EnhancedRateLimitMiddleware)
+    
+    ### Limites por Endpoint
+    - `/tours`: 100 req/hora (guest), 200 (authenticated), 500 (premium), 1000 (admin)
+    - `/tours/{id}/availability`: 200 req/hora (guest), 400 (authenticated), 1000 (premium), 2000 (admin)
+    - `/reservations`: 50 req/hora (guest), 100 (authenticated), 250 (premium), 500 (admin)
+    - `/products`: 150 req/hora (guest), 300 (authenticated), 750 (premium), 1500 (admin)
+    - `/products/unified`: 200 req/hora (guest), 400 (authenticated), 1000 (premium), 2000 (admin)
+    - `/payments`: 30 req/hora (guest), 60 (authenticated), 150 (premium), 300 (admin)
+    
+    ## Rotas Unificadas
+    A API inclui rotas unificadas que resolvem o problema N+1, fornecendo dados completos de produtos em uma única requisição:
+    
+    ### `/products/unified`
+    Retorna lista completa de produtos com dados relacionados (imagens, reviews, disponibilidade, produtos relacionados) em uma única requisição, resolvendo o problema de múltiplas requisições HTTP.
+    
+    ### `/products/unified/quick`
+    Versão otimizada para listagens rápidas, retornando apenas campos essenciais para melhor performance.
+    
+    ### Resposta de Rate Limit Excedido (429)
+    ```json
+    {
+      "success": false,
+      "error": {
+        "code": 429,
+        "type": "RATE_LIMIT_EXCEEDED",
+        "message": "Limite de consultas de tours atingido. Como visitante, você pode tentar novamente em 1 hora.",
+        "details": {
+          "endpoint": "/tours",
+          "user_type": "guest",
+          "limit_info": {
+            "requests": 100,
+            "window": 3600,
+            "window_human": "1 horas",
+            "multiplier": 1.0,
+            "base_limit": 100
+          },
+          "retry_after_seconds": 3600,
+          "retry_after_timestamp": 1643284800,
+          "retry_after_human": "1 hora",
+          "suggestions": [
+            "Considere usar filtros mais específicos para reduzir o número de consultas",
+            "Use cache local para evitar requisições repetidas",
+            "Considere fazer login para obter limites maiores",
+            "Implemente retry com backoff exponencial",
+            "Monitore os headers X-RateLimit-* para controlar requisições"
+          ]
+        }
+      },
+      "data": null
+    }
+    ```
+    
+    ## Status da API
+    - ✅ Tours e Passeios
+    - ✅ Reservas
+    - ✅ Produtos Estendidos
+    - ✅ Pagamentos
+    - ✅ Clientes
+    - ❌ Reviews (removido temporariamente)
+    
+    ## Mudanças Recentes
+    - ✅ Implementada Fase 1: Segurança, Performance e Monitoramento
+    - ✅ Rate limiting granular por endpoint e tipo de usuário
+    - ✅ Sistema de auditoria completo com logging estruturado
+    - ✅ Cache Redis distribuído com invalidação inteligente
+    - ✅ Compressão Gzip automática para melhor performance
+    - ✅ Health checks para monitoramento e Kubernetes
+    - ✅ Métricas em tempo real e alertas automáticos
+    - ✅ Corrigidos conflitos de rotas FastRoute
+    - ✅ Removidas rotas de reviews duplicadas
+    - ✅ Reorganizada ordem das rotas para evitar conflitos
+    - ✅ Atualizado para usar UUIDs em vez de IDs numéricos nas rotas de tours
+    - ✅ Corrigido erro 'Unknown column current_price' no AuthMiddleware
+    - ✅ Adicionados campos min_nights e max_nights para produtos de hospedagem
+    - ✅ Corrigida rota /reservations/availability movida para evitar conflitos
+    - ✅ Corrigidos erros de linting em reservations_advanced.php
+    - ✅ Atualizada documentação OpenAPI com novos campos e rotas
+    - ✅ Corrigido conflito FastRoute /reservations/waitlist com /reservations/{code}
+    - ✅ Reorganizadas rotas estáticas e variáveis para evitar sombreamento
+    - ✅ Movidas 10 rotas estáticas de reservations_advanced.php para reservations.php
+    - ✅ **MELHORIAS DE RATE LIMITING**: Headers informativos em todas as respostas
+    - ✅ **X-RateLimit-Limit**: Limite total de requisições
+    - ✅ **X-RateLimit-Remaining**: Requisições restantes no período atual
+    - ✅ **X-RateLimit-Reset**: Timestamp Unix quando o rate limit reseta
+    - ✅ **Retry-After**: Segundos para aguardar antes de tentar novamente
+    - ✅ **Respostas estruturadas**: Mensagens em português e amigáveis
+    - ✅ **Sugestões contextuais**: Alternativas e dicas de otimização
+    - ✅ **Headers adicionais**: X-RateLimit-Type, X-RateLimit-User-Type, etc.
+  version: 2.0.0
+  contact:
+    name: StarHub Solutions
+    email: contato@starhubsolutions.com
+  license:
+    name: Proprietary
+servers:
+  - url: https://api.starhubsolutions.com/v1
+    description: Servidor de produção
+  - url: http://localhost/v1
+    description: Servidor local de desenvolvimento
+
+security:
+  - ApiKeyAuth: []
+
+paths:
+  # ========== TOURS ==========
+  /tours:
+    get:
+      tags: [Tours]
+      summary: Listar tours com filtros
+      description: Lista tours/passeios com paginação e filtros avançados
+      parameters:
+        - name: limit
+          in: query
+          description: Número de itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: category
+          in: query
+          description: Filtrar por categoria
+          schema:
+            type: string
+        - name: location
+          in: query
+          description: Filtrar por localização
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Preço mínimo
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Preço máximo
+          schema:
+            type: number
+            format: float
+        - name: search
+          in: query
+          description: Busca por texto
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de tours
+          headers:
+            X-RateLimit-Limit:
+              description: Limite total de requisições
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              description: Requisições restantes no período atual
+              schema:
+                type: integer
+                example: 85
+            X-RateLimit-Reset:
+              description: Timestamp Unix quando o rate limit reseta
+              schema:
+                type: integer
+                example: 1643284800
+            X-RateLimit-Type:
+              description: Tipo de limite
+              schema:
+                type: string
+                example: "global"
+            X-RateLimit-User-Type:
+              description: Tipo de usuário
+              schema:
+                type: string
+                example: "authenticated"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Tour'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+        '429':
+          description: Rate limit excedido
+          headers:
+            Retry-After:
+              description: Segundos para aguardar antes de tentar novamente
+              schema:
+                type: integer
+                example: 3600
+            X-RateLimit-Limit:
+              description: Limite total de requisições
+              schema:
+                type: integer
+                example: 100
+            X-RateLimit-Remaining:
+              description: Requisições restantes (sempre 0 quando rate limit é atingido)
+              schema:
+                type: integer
+                example: 0
+            X-RateLimit-Reset:
+              description: Timestamp Unix quando o rate limit reseta
+              schema:
+                type: integer
+                example: 1643284800
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RateLimitError'
+
+  /tours/categories:
+    get:
+      tags: [Tours]
+      summary: Listar categorias disponíveis
+      description: Retorna lista de categorias de tours disponíveis
+      responses:
+        '200':
+          description: Lista de categorias
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example: ["passeio", "hospedagem", "aventura", "cultural"]
+
+  /tours/locations:
+    get:
+      tags: [Tours]
+      summary: Listar localizações disponíveis
+      description: Retorna lista de localizações de tours disponíveis
+      responses:
+        '200':
+          description: Lista de localizações
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                    example: ["Búzios", "Cabo Frio", "Arraial do Cabo", "Rio de Janeiro"]
+
+  /tours/{id}:
+    get:
+      tags: [Tours]
+      summary: Detalhes básicos de um tour
+      description: Retorna informações básicas de um tour específico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+      responses:
+        '200':
+          description: Detalhes do tour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Tour'
+        '404':
+          description: Tour não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /tours/{id}/details:
+    get:
+      tags: [Tours]
+      summary: Detalhes completos de um tour
+      description: Retorna informações completas incluindo avaliações e políticas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+      responses:
+        '200':
+          description: Detalhes completos do tour
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/TourDetails'
+
+  /tours/{id}/pricing:
+    get:
+      tags: [Tours]
+      summary: Preços e políticas de cancelamento
+      description: Retorna informações detalhadas de preços e políticas
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+        - name: date
+          in: query
+          description: Data específica para cálculo de preço
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Informações de preço
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Pricing'
+
+  /tours/{id}/availability:
+    get:
+      tags: [Tours]
+      summary: Datas disponíveis por mês/ano
+      description: Retorna lista de datas disponíveis para um período específico
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+        - name: year
+          in: query
+          required: true
+          description: Ano
+          schema:
+            type: integer
+            example: 2025
+        - name: month
+          in: query
+          required: true
+          description: Mês (1-12)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 12
+            example: 9
+      responses:
+        '200':
+          description: Lista de datas disponíveis
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      type: string
+                      format: date
+                    example: ["2025-09-02", "2025-09-04", "2025-09-06"]
+
+  /tours/{id}/availability/detailed:
+    get:
+      tags: [Tours]
+      summary: Disponibilidade detalhada
+      description: Retorna disponibilidade detalhada com capacidade e preços
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+        - name: start_date
+          in: query
+          required: true
+          description: Data de início
+          schema:
+            type: string
+            format: date
+        - name: end_date
+          in: query
+          required: true
+          description: Data de fim
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Disponibilidade detalhada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TourAvailability'
+
+  /tours/{id}/availability/check:
+    get:
+      tags: [Tours]
+      summary: Verificar disponibilidade específica
+      description: Verifica disponibilidade para uma data e número específico de participantes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+        - name: date
+          in: query
+          required: true
+          description: Data desejada
+          schema:
+            type: string
+            format: date
+        - name: adults
+          in: query
+          required: true
+          description: Número de adultos
+          schema:
+            type: integer
+            minimum: 1
+        - name: children
+          in: query
+          description: Número de crianças
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Status da disponibilidade
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/TourAvailability'
+
+  /tours/{id}/calculate-price:
+    get:
+      tags: [Tours]
+      summary: Calcular preço total
+      description: Calcula o preço total para uma data e número específico de participantes
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: UUID do tour
+          schema:
+            type: string
+            format: uuid
+            example: "5f78306a-92a1-11f0-9942-525400e981bd"
+        - name: date
+          in: query
+          required: true
+          description: Data desejada
+          schema:
+            type: string
+            format: date
+        - name: adults
+          in: query
+          required: true
+          description: Número de adultos
+          schema:
+            type: integer
+            minimum: 1
+        - name: children
+          in: query
+          description: Número de crianças
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Cálculo de preço
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      total_price:
+                        type: number
+                        format: float
+                        example: 1800.00
+                      breakdown:
+                        type: object
+                        properties:
+                          adult_price:
+                            type: number
+                            format: float
+                          child_price:
+                            type: number
+                            format: float
+                          taxes:
+                            type: number
+                            format: float
+                          fees:
+                            type: number
+                            format: float
+                          discounts:
+                            type: number
+                            format: float
+
+  # ========== RESERVATIONS ==========
+  /reservations/availability:
+    get:
+      tags: [Reservations]
+      summary: Verificar disponibilidade de produtos
+      description: Verifica disponibilidade de produtos para reserva em datas específicas
+      parameters:
+        - name: product_id
+          in: query
+          required: true
+          description: ID do produto
+          schema:
+            type: integer
+            example: 123
+        - name: date
+          in: query
+          required: true
+          description: Data para verificação
+          schema:
+            type: string
+            format: date
+            example: "2025-02-15"
+        - name: adults
+          in: query
+          description: Número de adultos
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: children
+          in: query
+          description: Número de crianças
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+      responses:
+        '200':
+          description: Disponibilidade verificada
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      available:
+                        type: boolean
+                        description: Se está disponível
+                        example: true
+                      capacity:
+                        type: integer
+                        description: Capacidade total
+                        example: 20
+                      booked:
+                        type: integer
+                        description: Já reservado
+                        example: 5
+                      available_spots:
+                        type: integer
+                        description: Vagas disponíveis
+                        example: 15
+                      price_per_adult:
+                        type: number
+                        format: float
+                        description: Preço por adulto
+                        example: 150.00
+                      price_per_child:
+                        type: number
+                        format: float
+                        description: Preço por criança
+                        example: 75.00
+                      restrictions:
+                        type: array
+                        items:
+                          type: string
+                        description: Restrições
+                        example: ["Idade mínima 12 anos"]
+        '400':
+          description: Parâmetros inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reservations:
+    get:
+      tags: [Reservations]
+      summary: Listar reservas com filtros
+      description: Lista reservas com filtros opcionais
+      parameters:
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: status
+          in: query
+          description: Filtrar por status
+          schema:
+            type: string
+            enum: [pending, confirmed, cancelled]
+        - name: tour_id
+          in: query
+          description: Filtrar por tour
+          schema:
+            type: integer
+        - name: date_from
+          in: query
+          description: Data de início
+          schema:
+            type: string
+            format: date
+        - name: date_to
+          in: query
+          description: Data de fim
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Lista de reservas
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Reservation'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+    post:
+      tags: [Reservations]
+      summary: Criar nova reserva
+      description: Cria uma nova reserva para um tour
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReservationRequest'
+      responses:
+        '201':
+          description: Reserva criada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Tour não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reservations/{code}:
+    get:
+      tags: [Reservations]
+      summary: Buscar reserva por código
+      description: Retorna detalhes de uma reserva específica
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código da reserva
+          schema:
+            type: string
+            example: "SH-12345678"
+      responses:
+        '200':
+          description: Detalhes da reserva
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Reservation'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags: [Reservations]
+      summary: Atualizar reserva
+      description: Atualiza dados de uma reserva existente
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código da reserva
+          schema:
+            type: string
+            example: "SH-12345678"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                adults:
+                  type: integer
+                  minimum: 1
+                  description: Número de adultos
+                children:
+                  type: integer
+                  minimum: 0
+                  description: Número de crianças
+                date:
+                  type: string
+                  format: date
+                  description: Nova data da reserva
+                customer_name:
+                  type: string
+                  description: Nome do cliente
+                customer_email:
+                  type: string
+                  format: email
+                  description: Email do cliente
+                customer_phone:
+                  type: string
+                  description: Telefone do cliente
+                notes:
+                  type: string
+                  description: Observações
+      responses:
+        '200':
+          description: Reserva atualizada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/Reservation'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /reservations/{code}/cancel:
+    post:
+      tags: [Reservations]
+      summary: Cancelar reserva
+      description: Cancela uma reserva com motivo opcional
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: Código da reserva
+          schema:
+            type: string
+            example: "SH-12345678"
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                reason:
+                  type: string
+                  description: Motivo do cancelamento
+                  example: "Mudança de planos"
+      responses:
+        '200':
+          description: Reserva cancelada com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      refund_amount:
+                        type: number
+                        format: float
+                        description: Valor do reembolso
+                      cancellation_reason:
+                        type: string
+                        description: Motivo do cancelamento
+                      cancelled_at:
+                        type: string
+                        format: date-time
+                        description: Data/hora do cancelamento
+        '400':
+          description: Não é possível cancelar
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Reserva não encontrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========== PRODUCTS UNIFIED ==========
+  /products/unified:
+    get:
+      tags: [Products]
+      summary: Listar produtos unificados (todos os tipos)
+      description: |
+        Rota unificada que retorna todos os dados necessários em uma única requisição,
+        resolvendo o problema N+1. Suporta todos os tipos de produtos:
+        - Tours e Passeios
+        - Accommodations (Hospedagem)
+        - E-commerce (Produtos físicos)
+        - Delivery (Entregas)
+        - Packages (Pacotes)
+      parameters:
+        - name: limit
+          in: query
+          description: Número de itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: type
+          in: query
+          description: Tipo do produto
+          schema:
+            type: string
+            enum: [tour, accommodation, delivery, ecommerce, package, product]
+        - name: search
+          in: query
+          description: Busca por nome/descrição
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filtrar por categoria
+          schema:
+            type: string
+        - name: min_price
+          in: query
+          description: Preço mínimo
+          schema:
+            type: number
+            format: float
+        - name: max_price
+          in: query
+          description: Preço máximo
+          schema:
+            type: number
+            format: float
+        - name: location
+          in: query
+          description: Filtrar por localização
+          schema:
+            type: string
+        - name: include_images
+          in: query
+          description: Incluir todas as imagens
+          schema:
+            type: boolean
+            default: true
+        - name: include_reviews
+          in: query
+          description: Incluir reviews e avaliações
+          schema:
+            type: boolean
+            default: true
+        - name: include_availability
+          in: query
+          description: Incluir disponibilidade
+          schema:
+            type: boolean
+            default: false
+        - name: include_related
+          in: query
+          description: Incluir produtos relacionados
+          schema:
+            type: boolean
+            default: false
+        - name: include_delivery
+          in: query
+          description: Incluir dados de delivery/frete
+          schema:
+            type: boolean
+            default: false
+        - name: include_inventory
+          in: query
+          description: Incluir dados de estoque/inventário
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          description: Lista de produtos unificados
+          headers:
+            X-RateLimit-Limit:
+              description: Limite total de requisições
+              schema:
+                type: integer
+                example: 150
+            X-RateLimit-Remaining:
+              description: Requisições restantes no período atual
+              schema:
+                type: integer
+                example: 135
+            X-RateLimit-Reset:
+              description: Timestamp Unix quando o rate limit reseta
+              schema:
+                type: integer
+                example: 1643284800
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/UnifiedProduct'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  filters:
+                    type: object
+                    properties:
+                      search:
+                        type: string
+                      category:
+                        type: string
+                      min_price:
+                        type: number
+                      max_price:
+                        type: number
+                      location:
+                        type: string
+                      type:
+                        type: string
+                      include_images:
+                        type: boolean
+                      include_reviews:
+                        type: boolean
+                      include_availability:
+                        type: boolean
+                      include_related:
+                        type: boolean
+                      include_delivery:
+                        type: boolean
+                      include_inventory:
+                        type: boolean
+                  meta:
+                    type: object
+                    properties:
+                      total_products:
+                        type: integer
+                      cache_key:
+                        type: string
+                      generated_at:
+                        type: string
+                        format: date-time
+                      performance:
+                        type: object
+                        properties:
+                          single_request:
+                            type: boolean
+                          batch_queries:
+                            type: boolean
+                          cache_enabled:
+                            type: boolean
+
+  /products/unified/quick:
+    get:
+      tags: [Products]
+      summary: Lista rápida de produtos (dados essenciais)
+      description: |
+        Versão otimizada apenas com dados essenciais para listagens rápidas.
+        Ideal para infinite scroll e busca em tempo real.
+      parameters:
+        - name: limit
+          in: query
+          description: Número de itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: type
+          in: query
+          description: Tipo do produto
+          schema:
+            type: string
+            enum: [tour, accommodation, delivery, ecommerce, package, product]
+        - name: search
+          in: query
+          description: Busca por nome/descrição
+          schema:
+            type: string
+        - name: category
+          in: query
+          description: Filtrar por categoria
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista rápida de produtos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/QuickProduct'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+                  meta:
+                    type: object
+                    properties:
+                      total_products:
+                        type: integer
+                      generated_at:
+                        type: string
+                        format: date-time
+                      performance:
+                        type: object
+                        properties:
+                          single_request:
+                            type: boolean
+                          quick_mode:
+                            type: boolean
+                          cache_enabled:
+                            type: boolean
+
+  # ========== PRODUCTS EXTENDED ==========
+  /products/extended:
+    get:
+      tags: [Products]
+      summary: Listar produtos estendidos
+      description: Lista produtos com campos estendidos para tours e hospedagem
+      parameters:
+        - name: limit
+          in: query
+          description: Número de itens por página
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 10
+        - name: page
+          in: query
+          description: Número da página
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: type
+          in: query
+          description: Tipo do produto
+          schema:
+            type: string
+            enum: [tour, accommodation, package]
+        - name: location
+          in: query
+          description: Filtrar por localização
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Lista de produtos estendidos
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/ExtendedProduct'
+                  pagination:
+                    $ref: '#/components/schemas/Pagination'
+
+  /products/extended/{uuid}:
+    get:
+      tags: [Products]
+      summary: Detalhes de produto estendido
+      description: Retorna detalhes completos de um produto estendido
+      parameters:
+        - name: uuid
+          in: path
+          required: true
+          description: UUID do produto
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Detalhes do produto
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/ExtendedProduct'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========== PAYMENTS ==========
+  /payments/process:
+    post:
+      tags: [Payments]
+      summary: Processar pagamento
+      description: Processa pagamento para uma reserva
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reservation_id, payment_method]
+              properties:
+                reservation_id:
+                  type: string
+                  description: ID da reserva
+                  example: "SH-12345678"
+                payment_method:
+                  type: string
+                  enum: [credit_card, pix, boleto]
+                  description: Método de pagamento
+                card_info:
+                  type: object
+                  description: Informações do cartão (se aplicável)
+                  properties:
+                    number:
+                      type: string
+                      description: Número do cartão
+                    expiry:
+                      type: string
+                      description: Data de validade (MM/YY)
+                    cvv:
+                      type: string
+                      description: CVV
+                    name:
+                      type: string
+                      description: Nome no cartão
+      responses:
+        '200':
+          description: Pagamento processado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PaymentResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payments/{id}/status:
+    get:
+      tags: [Payments]
+      summary: Verificar status do pagamento
+      description: Verifica o status atual de um pagamento
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID do pagamento
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Status do pagamento
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    $ref: '#/components/schemas/PaymentResponse'
+        '404':
+          description: Pagamento não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /payments/refund:
+    post:
+      tags: [Payments]
+      summary: Solicitar reembolso
+      description: Solicita reembolso para uma reserva
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reservation_id, reason]
+              properties:
+                reservation_id:
+                  type: string
+                  description: ID da reserva
+                  example: "SH-12345678"
+                reason:
+                  type: string
+                  description: Motivo do reembolso
+                  example: "Cancelamento do cliente"
+      responses:
+        '200':
+          description: Reembolso processado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      refund_amount:
+                        type: number
+                        format: float
+                        description: Valor do reembolso
+                      refund_id:
+                        type: string
+                        description: ID do reembolso
+                      status:
+                        type: string
+                        enum: [pending, approved, declined]
+                        description: Status do reembolso
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  # ========== CUSTOMERS ==========
+  /customers:
+    post:
+      tags: [Customers]
+      summary: Criar/atualizar cliente
+      description: Cria ou atualiza informações de um cliente
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInfo'
+      responses:
+        '200':
+          description: Cliente criado/atualizado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: ID do cliente
+                      customer:
+                        $ref: '#/components/schemas/CustomerInfo'
+
+  /customers/search:
+    get:
+      tags: [Customers]
+      summary: Buscar cliente por email
+      description: Busca um cliente pelo email
+      parameters:
+        - name: email
+          in: query
+          required: true
+          description: Email do cliente
+          schema:
+            type: string
+            format: email
+      responses:
+        '200':
+          description: Cliente encontrado
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    allOf:
+                      - $ref: '#/components/schemas/CustomerInfo'
+                      - type: object
+                        properties:
+                          id:
+                            type: string
+                            description: ID do cliente
+        '404':
+          description: Cliente não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-starhub-token
+      description: Token de autenticação do cliente
+
+  schemas:
+    Tour:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID único do tour
+          example: 101
+        title:
+          type: string
+          description: Título do tour
+          example: "Pousada JP • 3 Noites (2 Pessoas)"
+        subtitle:
+          type: string
+          description: Subtítulo/localização
+          example: "Armação dos Búzios"
+        price:
+          type: number
+          format: float
+          description: Preço atual
+          example: 1800.00
+        images:
+          type: array
+          items:
+            type: string
+            format: uri
+          description: URLs das imagens
+          example: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
+        description:
+          type: string
+          description: Descrição do tour
+        duration:
+          type: string
+          description: Duração do tour
+          example: "3 dias / 2 noites"
+        location:
+          type: string
+          description: Localização
+          example: "Armação dos Búzios, RJ"
+        category:
+          type: string
+          description: Categoria
+          example: "pousada"
+        max_capacity:
+          type: integer
+          description: Capacidade máxima
+          example: 4
+        min_people:
+          type: integer
+          description: Número mínimo de pessoas
+          example: 2
+        max_people:
+          type: integer
+          description: Número máximo de pessoas
+          example: 4
+
+    TourDetails:
+      allOf:
+        - $ref: '#/components/schemas/Tour'
+        - type: object
+          properties:
+            includes:
+              type: array
+              items:
+                type: string
+              description: O que está incluído
+              example: ["Café da manhã", "Acesso à praia"]
+            excludes:
+              type: array
+              items:
+                type: string
+              description: O que não está incluído
+              example: ["Almoço", "Jantar"]
+            requirements:
+              type: array
+              items:
+                type: string
+              description: Requisitos
+            cancellation_policy:
+              type: string
+              description: Política de cancelamento
+            rating:
+              type: number
+              format: float
+              description: Avaliação média
+              example: 4.5
+            review_count:
+              type: integer
+              description: Número de avaliações
+              example: 127
+            reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+              description: Avaliações recentes
+
+    TourAvailability:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Data
+          example: "2025-09-15"
+        available_spots:
+          type: integer
+          description: Vagas disponíveis
+          example: 8
+        max_adults:
+          type: integer
+          description: Máximo de adultos
+          example: 10
+        max_children:
+          type: integer
+          description: Máximo de crianças
+          example: 5
+        min_adults:
+          type: integer
+          description: Mínimo de adultos
+          example: 1
+        min_children:
+          type: integer
+          description: Mínimo de crianças
+          example: 0
+        price_per_adult:
+          type: number
+          format: float
+          description: Preço por adulto
+          example: 900.00
+        price_per_child:
+          type: number
+          format: float
+          description: Preço por criança
+          example: 450.00
+        total_price:
+          type: number
+          format: float
+          description: Preço total
+          example: 1800.00
+        is_available:
+          type: boolean
+          description: Se está disponível
+          example: true
+        restrictions:
+          type: array
+          items:
+            type: string
+          description: Restrições
+          example: ["Idade mínima 12 anos"]
+
+    Pricing:
+      type: object
+      properties:
+        base_price:
+          type: number
+          format: float
+          description: Preço base
+          example: 900.00
+        adult_price:
+          type: number
+          format: float
+          description: Preço por adulto
+          example: 900.00
+        child_price:
+          type: number
+          format: float
+          description: Preço por criança
+          example: 450.00
+        seasonal_multiplier:
+          type: number
+          format: float
+          description: Multiplicador sazonal
+          example: 1.2
+        weekend_surcharge:
+          type: number
+          format: float
+          description: Taxa de fim de semana
+          example: 100.00
+        child_discount:
+          type: number
+          format: float
+          description: Desconto para crianças
+          example: 0.5
+        group_discounts:
+          type: array
+          items:
+            type: object
+            properties:
+              min_people:
+                type: integer
+                description: Número mínimo de pessoas
+              discount_percent:
+                type: number
+                format: float
+                description: Percentual de desconto
+          description: Descontos por grupo
+        taxes:
+          type: number
+          format: float
+          description: Impostos
+          example: 50.00
+        fees:
+          type: number
+          format: float
+          description: Taxas
+          example: 25.00
+
+    ReservationRequest:
+      type: object
+      required: [tour_id, date, adults]
+      properties:
+        tour_id:
+          type: integer
+          description: ID do tour
+          example: 101
+        date:
+          type: string
+          format: date
+          description: Data da reserva
+          example: "2025-09-15"
+        adults:
+          type: integer
+          minimum: 1
+          description: Número de adultos
+          example: 2
+        children:
+          type: integer
+          minimum: 0
+          description: Número de crianças
+          example: 1
+        customer_info:
+          $ref: '#/components/schemas/CustomerInfo'
+        special_requests:
+          type: string
+          description: Solicitações especiais
+          example: "Quarto com vista para o mar"
+        payment_method:
+          type: string
+          enum: [credit_card, pix, boleto]
+          description: Método de pagamento preferido
+
+    ReservationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID da reserva
+          example: "12345"
+        code:
+          type: string
+          description: Código da reserva
+          example: "SH-12345678"
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+          description: Status da reserva
+          example: "pending"
+        total_price:
+          type: number
+          format: float
+          description: Preço total
+          example: 1800.00
+        payment_status:
+          type: string
+          enum: [pending, paid, refunded]
+          description: Status do pagamento
+          example: "pending"
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação
+          example: "2025-01-16T10:30:00Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: Data de expiração
+          example: "2025-01-17T10:30:00Z"
+        payment_url:
+          type: string
+          format: uri
+          description: URL para pagamento (se aplicável)
+
+    Reservation:
+      allOf:
+        - $ref: '#/components/schemas/ReservationResponse'
+        - type: object
+          properties:
+            tour:
+              $ref: '#/components/schemas/Tour'
+            customer_info:
+              $ref: '#/components/schemas/CustomerInfo'
+            adults:
+              type: integer
+              description: Número de adultos
+            children:
+              type: integer
+              description: Número de crianças
+            date:
+              type: string
+              format: date
+              description: Data da reserva
+            special_requests:
+              type: string
+              description: Solicitações especiais
+            updated_at:
+              type: string
+              format: date-time
+              description: Data de atualização
+
+    CustomerInfo:
+      type: object
+      required: [name, email, phone]
+      properties:
+        name:
+          type: string
+          description: Nome completo
+          example: "João Silva"
+        email:
+          type: string
+          format: email
+          description: Email
+          example: "joao@email.com"
+        phone:
+          type: string
+          description: Telefone
+          example: "+55 21 99999-9999"
+        document:
+          type: string
+          description: CPF/RG
+          example: "123.456.789-00"
+        birth_date:
+          type: string
+          format: date
+          description: Data de nascimento
+          example: "1990-01-15"
+        address:
+          type: object
+          description: Endereço
+          properties:
+            street:
+              type: string
+              description: Rua
+              example: "Rua das Flores, 123"
+            city:
+              type: string
+              description: Cidade
+              example: "Rio de Janeiro"
+            state:
+              type: string
+              description: Estado
+              example: "RJ"
+            zip_code:
+              type: string
+              description: CEP
+              example: "20000-000"
+            country:
+              type: string
+              description: País
+              example: "Brasil"
+
+    PaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID do pagamento
+          example: "PAY-123456789"
+        status:
+          type: string
+          enum: [pending, approved, declined, cancelled]
+          description: Status do pagamento
+          example: "approved"
+        payment_url:
+          type: string
+          format: uri
+          description: URL para pagamento (se aplicável)
+        boleto_url:
+          type: string
+          format: uri
+          description: URL do boleto (se aplicável)
+        pix_code:
+          type: string
+          description: Código PIX (se aplicável)
+        expires_at:
+          type: string
+          format: date-time
+          description: Data de expiração (se aplicável)
+
+    UnifiedProduct:
+      allOf:
+        - $ref: '#/components/schemas/Tour'
+        - type: object
+          properties:
+            uuid:
+              type: string
+              format: uuid
+              description: UUID único do produto
+            type:
+              type: string
+              enum: [tour, accommodation, delivery, ecommerce, package, product]
+              description: Tipo do produto
+            # Campos específicos para accommodation
+            address:
+              type: string
+              description: Endereço completo
+            amenities:
+              type: array
+              items:
+                type: string
+              description: Comodidades
+            policies:
+              type: string
+              description: Políticas gerais
+            check_in_time:
+              type: string
+              description: Horário de check-in
+              example: "14:00"
+            check_out_time:
+              type: string
+              description: Horário de check-out
+              example: "12:00"
+            min_nights:
+              type: integer
+              description: Número mínimo de noites para hospedagem
+              example: 1
+            max_nights:
+              type: integer
+              description: Número máximo de noites para hospedagem
+              example: 30
+            # Campos específicos para tour
+            meeting_point:
+              type: string
+              description: Ponto de encontro
+            difficulty_level:
+              type: string
+              description: Nível de dificuldade
+              example: "Fácil"
+            # Campos específicos para ecommerce/delivery
+            weight:
+              type: string
+              description: Peso do produto
+              example: "1000"
+            is_physical:
+              type: boolean
+              description: Se é produto físico
+              example: true
+            sell_by:
+              type: string
+              enum: [unit, kg]
+              description: Como o produto é vendido
+              example: "kg"
+            step_grams:
+              type: integer
+              description: Gramas por passo
+              example: 100
+            min_steps:
+              type: integer
+              description: Mínimo de passos
+              example: 5
+            max_steps:
+              type: integer
+              description: Máximo de passos
+              example: 100
+            case_qty:
+              type: integer
+              description: Quantidade por caixa
+              example: 12
+            unit_size:
+              type: number
+              format: float
+              description: Tamanho da unidade
+              example: 500.0
+            unit_unit:
+              type: string
+              description: Unidade de medida
+              example: "g"
+            # Campos de dados relacionados (quando incluídos)
+            images:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                  url:
+                    type: string
+                  alt_text:
+                    type: string
+                  order:
+                    type: integer
+            avg_rating:
+              type: number
+              format: float
+              description: Avaliação média
+            reviews_count:
+              type: integer
+              description: Número de avaliações
+            recent_reviews:
+              type: array
+              items:
+                $ref: '#/components/schemas/Review'
+            availability:
+              type: array
+              items:
+                type: object
+                properties:
+                  available_date:
+                    type: string
+                    format: date
+                  price_per_night:
+                    type: number
+                    format: float
+                  max_guests:
+                    type: integer
+                  available_spots:
+                    type: integer
+            related_products:
+              type: array
+              items:
+                type: object
+                properties:
+                  uuid:
+                    type: string
+                  name:
+                    type: string
+                  current_price:
+                    type: number
+                    format: float
+                  main_image:
+                    type: string
+            delivery_info:
+              type: object
+              description: Informações de delivery/frete (quando include_delivery=true)
+              properties:
+                delivery_fixed_price:
+                  type: number
+                  format: float
+                  description: Preço fixo de entrega
+                  example: 5.00
+                delivery_max_km:
+                  type: number
+                  format: float
+                  description: Distância máxima de entrega
+                  example: 10.0
+                delivery_price_per_km:
+                  type: number
+                  format: float
+                  description: Preço por quilômetro
+                  example: 1.00
+                delivery_free_from:
+                  type: number
+                  format: float
+                  description: Frete grátis a partir de
+                  example: 100.00
+                fulfillment_mode:
+                  type: string
+                  enum: [delivery, pickup, both]
+                  description: Modo de atendimento
+                  example: "both"
+
+    QuickProduct:
+      type: object
+      properties:
+        uuid:
+          type: string
+          format: uuid
+          description: UUID único do produto
+        name:
+          type: string
+          description: Nome do produto
+        slug:
+          type: string
+          description: Slug do produto
+        description:
+          type: string
+          description: Descrição do produto
+        type:
+          type: string
+          enum: [tour, accommodation, delivery, ecommerce, package, product]
+          description: Tipo do produto
+        price_original:
+          type: number
+          format: float
+          description: Preço original
+        price_promo:
+          type: number
+          format: float
+          description: Preço promocional
+        current_price:
+          type: number
+          format: float
+          description: Preço atual
+        discount_percentage:
+          type: number
+          format: float
+          description: Percentual de desconto
+        stock:
+          type: integer
+          description: Quantidade em estoque
+        in_stock:
+          type: boolean
+          description: Se está em estoque
+        main_image:
+          type: string
+          format: uri
+          description: Imagem principal
+        location:
+          type: string
+          description: Localização
+        duration:
+          type: string
+          description: Duração (para tours)
+        rating:
+          type: number
+          format: float
+          description: Avaliação média
+        # Campos específicos por tipo
+        min_nights:
+          type: integer
+          description: Mínimo de noites (accommodation)
+        max_nights:
+          type: integer
+          description: Máximo de noites (accommodation)
+        check_in_time:
+          type: string
+          description: Horário de check-in (accommodation)
+        check_out_time:
+          type: string
+          description: Horário de check-out (accommodation)
+        weight:
+          type: string
+          description: Peso (ecommerce/delivery)
+          example: "1000"
+        is_physical:
+          type: boolean
+          description: Se é produto físico (ecommerce/delivery)
+          example: true
+        sell_by:
+          type: string
+          enum: [unit, kg]
+          description: Como o produto é vendido (ecommerce/delivery)
+          example: "kg"
+
+    ExtendedProduct:
+      allOf:
+        - $ref: '#/components/schemas/Tour'
+        - type: object
+          properties:
+            uuid:
+              type: string
+              format: uuid
+              description: UUID único do produto
+            type:
+              type: string
+              enum: [tour, accommodation, package]
+              description: Tipo do produto
+            address:
+              type: string
+              description: Endereço completo
+            amenities:
+              type: array
+              items:
+                type: string
+              description: Comodidades
+            policies:
+              type: string
+              description: Políticas gerais
+            check_in_time:
+              type: string
+              description: Horário de check-in
+              example: "14:00"
+            check_out_time:
+              type: string
+              description: Horário de check-out
+              example: "12:00"
+            meeting_point:
+              type: string
+              description: Ponto de encontro
+            difficulty_level:
+              type: string
+              description: Nível de dificuldade
+              example: "Fácil"
+            min_nights:
+              type: integer
+              description: Número mínimo de noites para hospedagem (apenas para tipo accommodation)
+              example: 1
+            max_nights:
+              type: integer
+              description: Número máximo de noites para hospedagem (apenas para tipo accommodation)
+              example: 30
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID da avaliação
+        customer_name:
+          type: string
+          description: Nome do cliente
+          example: "Maria Silva"
+        rating:
+          type: integer
+          minimum: 1
+          maximum: 5
+          description: Avaliação (1-5)
+          example: 5
+        comment:
+          type: string
+          description: Comentário
+          example: "Excelente experiência!"
+        date:
+          type: string
+          format: date-time
+          description: Data da avaliação
+        verified:
+          type: boolean
+          description: Se a avaliação foi verificada
+          example: true
+
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          description: Página atual
+          example: 1
+        per_page:
+          type: integer
+          description: Itens por página
+          example: 10
+        total_items:
+          type: integer
+          description: Total de itens
+          example: 150
+        total_pages:
+          type: integer
+          description: Total de páginas
+          example: 15
+        has_next_page:
+          type: boolean
+          description: Tem próxima página
+          example: true
+        has_prev_page:
+          type: boolean
+          description: Tem página anterior
+          example: false
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Código do erro
+              example: 404
+            type:
+              type: string
+              description: Tipo do erro
+              example: "NOT_FOUND"
+            message:
+              type: string
+              description: Mensagem do erro
+              example: "Recurso não encontrado"
+            details:
+              type: string
+              description: Detalhes adicionais (opcional)
+
+    RateLimitError:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Código do erro
+              example: 429
+            type:
+              type: string
+              description: Tipo do erro
+              example: "RATE_LIMIT_EXCEEDED"
+            message:
+              type: string
+              description: Mensagem amigável do erro
+              example: "Limite de consultas de tours atingido. Como visitante, você pode tentar novamente em 1 hora."
+            details:
+              type: object
+              description: Detalhes específicos do rate limit
+              properties:
+                endpoint:
+                  type: string
+                  description: Endpoint que atingiu o limite
+                  example: "/tours"
+                user_type:
+                  type: string
+                  description: Tipo de usuário
+                  example: "guest"
+                limit_info:
+                  type: object
+                  properties:
+                    requests:
+                      type: integer
+                      description: Limite de requisições
+                      example: 100
+                    window:
+                      type: integer
+                      description: Janela de tempo em segundos
+                      example: 3600
+                    window_human:
+                      type: string
+                      description: Janela de tempo em formato legível
+                      example: "1 horas"
+                    multiplier:
+                      type: number
+                      format: float
+                      description: Multiplicador por tipo de usuário
+                      example: 1.0
+                    base_limit:
+                      type: integer
+                      description: Limite base
+                      example: 100
+                retry_after_seconds:
+                  type: integer
+                  description: Segundos para aguardar antes de tentar novamente
+                  example: 3600
+                retry_after_timestamp:
+                  type: integer
+                  description: Timestamp Unix quando pode tentar novamente
+                  example: 1643284800
+                retry_after_human:
+                  type: string
+                  description: Tempo de retry em formato legível
+                  example: "1 hora"
+                suggestions:
+                  type: array
+                  items:
+                    type: string
+                  description: Sugestões para resolver o problema
+                  example: [
+                    "Considere usar filtros mais específicos para reduzir o número de consultas",
+                    "Use cache local para evitar requisições repetidas",
+                    "Considere fazer login para obter limites maiores",
+                    "Implemente retry com backoff exponencial",
+                    "Monitore os headers X-RateLimit-* para controlar requisições"
+                  ]
+        data:
+          type: null
+          example: null
+
+  # ========== HEALTH & MONITORING ==========
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check básico
+      description: Verifica a saúde básica da API e serviços
+      security: []
+      responses:
+        '200':
+          description: API saudável
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+        '503':
+          description: API com problemas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
+  /health/detailed:
+    get:
+      tags: [Health]
+      summary: Health check detalhado
+      description: Verifica a saúde detalhada com métricas avançadas
+      security: []
+      responses:
+        '200':
+          description: Informações detalhadas de saúde
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DetailedHealthResponse'
+
+  /health/ready:
+    get:
+      tags: [Health]
+      summary: Readiness check
+      description: Verifica se a API está pronta para receber tráfego (Kubernetes)
+      security: []
+      responses:
+        '200':
+          description: API pronta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+        '503':
+          description: API não pronta
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReadinessResponse'
+
+  /health/live:
+    get:
+      tags: [Health]
+      summary: Liveness check
+      description: Verifica se a API está viva (Kubernetes)
+      security: []
+      responses:
+        '200':
+          description: API viva
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LivenessResponse'
+
+  /metrics:
+    get:
+      tags: [Health]
+      summary: Métricas da API
+      description: Retorna métricas básicas de performance e uso
+      security: []
+      responses:
+        '200':
+          description: Métricas da API
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MetricsResponse'
+
+components:
+  securitySchemes:
+    ApiKeyAuth:
+      type: apiKey
+      in: header
+      name: x-starhub-token
+      description: Token de autenticação da API
+
+  schemas:
+    # ========== HEALTH SCHEMAS ==========
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, degraded, unhealthy]
+          description: Status geral da API
+          example: healthy
+        timestamp:
+          type: string
+          format: date-time
+          description: Timestamp da verificação
+          example: "2025-01-27T10:30:00Z"
+        version:
+          type: string
+          description: Versão da API
+          example: "2.0.0"
+        uptime:
+          type: string
+          description: Tempo de atividade da API
+          example: "02:15:30"
+        services:
+          type: object
+          properties:
+            database:
+              $ref: '#/components/schemas/ServiceHealth'
+            cache:
+              $ref: '#/components/schemas/ServiceHealth'
+            external:
+              type: object
+              properties:
+                mercado_pago:
+                  type: string
+                  enum: [healthy, unhealthy]
+                efi:
+                  type: string
+                  enum: [healthy, unhealthy]
+        response_time:
+          type: number
+          format: float
+          description: Tempo de resposta em milissegundos
+          example: 25.8
+
+    DetailedHealthResponse:
+      allOf:
+        - $ref: '#/components/schemas/HealthResponse'
+        - type: object
+          properties:
+            environment:
+              type: string
+              description: Ambiente da aplicação
+              example: production
+            server:
+              type: object
+              properties:
+                php_version:
+                  type: string
+                  example: "8.2.0"
+                memory_usage:
+                  type: integer
+                  description: Uso de memória em bytes
+                  example: 52428800
+                memory_peak:
+                  type: integer
+                  description: Pico de memória em bytes
+                  example: 67108864
+                memory_limit:
+                  type: string
+                  example: "256M"
+            database:
+              type: object
+              properties:
+                connections:
+                  type: integer
+                  example: 5
+                max_connections:
+                  type: integer
+                  example: 100
+                queries_per_second:
+                  type: number
+                  format: float
+                  example: 45.2
+                slow_queries:
+                  type: integer
+                  example: 2
+                uptime:
+                  type: integer
+                  example: 86400
+            cache:
+              type: object
+              properties:
+                hit_rate:
+                  type: number
+                  format: float
+                  example: 0.85
+                miss_rate:
+                  type: number
+                  format: float
+                  example: 0.15
+                total_keys:
+                  type: integer
+                  example: 1250
+                memory_usage:
+                  type: string
+                  example: "45MB"
+            performance:
+              type: object
+              properties:
+                response_time:
+                  type: number
+                  format: float
+                  example: 25.8
+                queries_executed:
+                  type: integer
+                  example: 3
+                cache_hits:
+                  type: integer
+                  example: 2
+                cache_misses:
+                  type: integer
+                  example: 1
+
+    ReadinessResponse:
+      type: object
+      properties:
+        ready:
+          type: boolean
+          description: Se a API está pronta
+          example: true
+        checks:
+          type: object
+          properties:
+            database:
+              type: string
+              enum: [ready, not_ready]
+              example: ready
+            cache:
+              type: string
+              enum: [ready, not_ready]
+              example: ready
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-27T10:30:00Z"
+
+    LivenessResponse:
+      type: object
+      properties:
+        alive:
+          type: boolean
+          description: Se a API está viva
+          example: true
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-27T10:30:00Z"
+        uptime:
+          type: string
+          description: Tempo de atividade
+          example: "02:15:30"
+        memory_usage:
+          type: integer
+          description: Uso de memória em bytes
+          example: 52428800
+        memory_peak:
+          type: integer
+          description: Pico de memória em bytes
+          example: 67108864
+
+    MetricsResponse:
+      type: object
+      properties:
+        timestamp:
+          type: string
+          format: date-time
+          example: "2025-01-27T10:30:00Z"
+        uptime:
+          type: string
+          description: Tempo de atividade
+          example: "02:15:30"
+        requests:
+          type: object
+          properties:
+            total_requests:
+              type: integer
+              example: 15420
+            requests_per_minute:
+              type: integer
+              example: 45
+            average_response_time:
+              type: number
+              format: float
+              example: 180.5
+        database:
+          type: object
+          properties:
+            active_connections:
+              type: integer
+              example: 5
+            queries_per_second:
+              type: number
+              format: float
+              example: 45.2
+            slow_queries:
+              type: integer
+              example: 2
+        cache:
+          type: object
+          properties:
+            hit_rate:
+              type: number
+              format: float
+              example: 0.85
+            total_keys:
+              type: integer
+              example: 1250
+            memory_usage:
+              type: string
+              example: "45MB"
+        performance:
+          type: object
+          properties:
+            average_response_time:
+              type: number
+              format: float
+              example: 180.5
+            p95_response_time:
+              type: number
+              format: float
+              example: 250.0
+            p99_response_time:
+              type: number
+              format: float
+              example: 500.0
+            memory_usage:
+              type: integer
+              example: 52428800
+            memory_peak:
+              type: integer
+              example: 67108864
+
+    ServiceHealth:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [healthy, unhealthy]
+          description: Status do serviço
+          example: healthy
+        response_time:
+          type: number
+          format: float
+          description: Tempo de resposta em milissegundos
+          example: 15.2
+        error:
+          type: string
+          description: Mensagem de erro (se houver)
+          example: "Connection timeout"
+
+    # ========== EXISTING SCHEMAS ==========
+    Tour:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID único do tour
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        name:
+          type: string
+          description: Nome do tour
+          example: "Passeio de Barco em Búzios"
+        subtitle:
+          type: string
+          description: Subtítulo do tour
+          example: "Descubra as praias mais bonitas de Búzios"
+        description:
+          type: string
+          description: Descrição completa do tour
+          example: "Um passeio inesquecível pelas praias paradisíacas de Búzios..."
+        price:
+          type: number
+          format: float
+          description: Preço base do tour
+          example: 150.00
+        images:
+          type: array
+          items:
+            type: string
+          description: URLs das imagens do tour
+          example: ["https://example.com/image1.jpg", "https://example.com/image2.jpg"]
+        location:
+          type: string
+          description: Localização do tour
+          example: "Armação dos Búzios, RJ"
+        duration:
+          type: string
+          description: Duração do tour
+          example: "4 horas"
+        category:
+          type: string
+          description: Categoria do tour
+          example: "passeio_mar"
+        max_participants:
+          type: integer
+          description: Número máximo de participantes
+          example: 20
+        min_participants:
+          type: integer
+          description: Número mínimo de participantes
+          example: 2
+        rating:
+          type: number
+          format: float
+          description: Avaliação média do tour
+          example: 4.8
+        review_count:
+          type: integer
+          description: Número de avaliações
+          example: 150
+        includes:
+          type: array
+          items:
+            type: string
+          description: O que está incluído no tour
+          example: ["Guia turístico", "Equipamentos de segurança", "Lanche"]
+        excludes:
+          type: array
+          items:
+            type: string
+          description: O que não está incluído no tour
+          example: ["Transporte até o local", "Bebidas alcoólicas"]
+        requirements:
+          type: array
+          items:
+            type: string
+          description: Requisitos para participar
+          example: ["Saber nadar", "Idade mínima 12 anos"]
+        cancellation_policy:
+          type: string
+          description: Política de cancelamento
+          example: "Cancelamento gratuito até 24h antes do passeio"
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação
+          example: "2025-01-15T10:30:00Z"
+        updated_at:
+          type: string
+          format: date-time
+          description: Data de atualização
+          example: "2025-01-20T15:45:00Z"
+
+    TourAvailability:
+      type: object
+      properties:
+        date:
+          type: string
+          format: date
+          description: Data da disponibilidade
+          example: "2025-02-15"
+        available_spots:
+          type: integer
+          description: Vagas disponíveis
+          example: 15
+        max_spots:
+          type: integer
+          description: Total de vagas
+          example: 20
+        price_per_adult:
+          type: number
+          format: float
+          description: Preço por adulto
+          example: 150.00
+        price_per_child:
+          type: number
+          format: float
+          description: Preço por criança
+          example: 75.00
+        is_available:
+          type: boolean
+          description: Se está disponível para reserva
+          example: true
+        restrictions:
+          type: array
+          items:
+            type: string
+          description: Restrições específicas da data
+          example: ["Chuva prevista", "Mar agitado"]
+
+    ReservationRequest:
+      type: object
+      required: [tour_id, date, adults, children, customer_info]
+      properties:
+        tour_id:
+          type: string
+          format: uuid
+          description: UUID do tour
+          example: "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        date:
+          type: string
+          format: date
+          description: Data da reserva
+          example: "2025-02-15"
+        adults:
+          type: integer
+          minimum: 1
+          description: Número de adultos
+          example: 2
+        children:
+          type: integer
+          minimum: 0
+          description: Número de crianças
+          example: 1
+        customer_info:
+          $ref: '#/components/schemas/CustomerInfo'
+        special_requests:
+          type: string
+          description: Solicitações especiais
+          example: "Vegetariano, alergia a frutos do mar"
+        payment_method:
+          type: string
+          enum: [credit_card, pix, boleto]
+          description: Método de pagamento preferido
+          example: "credit_card"
+
+    CustomerInfo:
+      type: object
+      required: [name, email, phone]
+      properties:
+        name:
+          type: string
+          description: Nome completo do cliente
+          example: "João Silva"
+        email:
+          type: string
+          format: email
+          description: Email do cliente
+          example: "joao@email.com"
+        phone:
+          type: string
+          description: Telefone do cliente
+          example: "+55 21 99999-9999"
+        document:
+          type: string
+          description: CPF ou documento
+          example: "123.456.789-00"
+        birth_date:
+          type: string
+          format: date
+          description: Data de nascimento
+          example: "1990-05-15"
+        address:
+          type: object
+          properties:
+            street:
+              type: string
+              example: "Rua das Flores, 123"
+            city:
+              type: string
+              example: "Rio de Janeiro"
+            state:
+              type: string
+              example: "RJ"
+            zip_code:
+              type: string
+              example: "20000-000"
+            country:
+              type: string
+              example: "Brasil"
+
+    ReservationResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID interno da reserva
+          example: "123"
+        code:
+          type: string
+          description: Código único da reserva
+          example: "SH-2025-001234"
+        status:
+          type: string
+          enum: [pending, confirmed, cancelled]
+          description: Status da reserva
+          example: "confirmed"
+        total_price:
+          type: number
+          format: float
+          description: Preço total da reserva
+          example: 375.00
+        payment_status:
+          type: string
+          enum: [pending, paid, refunded]
+          description: Status do pagamento
+          example: "paid"
+        created_at:
+          type: string
+          format: date-time
+          description: Data de criação
+          example: "2025-01-27T10:30:00Z"
+        expires_at:
+          type: string
+          format: date-time
+          description: Data de expiração
+          example: "2025-01-28T10:30:00Z"
+        payment_url:
+          type: string
+          format: uri
+          description: URL para pagamento (se pendente)
+          example: "https://mercadopago.com/pay/SH-2025-001234"
+
+    Reservation:
+      allOf:
+        - $ref: '#/components/schemas/ReservationResponse'
+        - type: object
+          properties:
+            tour:
+              $ref: '#/components/schemas/Tour'
+            customer_info:
+              $ref: '#/components/schemas/CustomerInfo'
+            adults:
+              type: integer
+              example: 2
+            children:
+              type: integer
+              example: 1
+            date:
+              type: string
+              format: date
+              example: "2025-02-15"
+            special_requests:
+              type: string
+              example: "Vegetariano"
+            updated_at:
+              type: string
+              format: date-time
+              example: "2025-01-27T15:45:00Z"
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+          description: ID da avaliação
+          example: 1
+        customer_name:
+          type: string
+          description: Nome do cliente
+          example: "João Silva"
+        rating:
+          type: number
+          format: float
+          minimum: 1
+          maximum: 5
+          description: Avaliação (1-5)
+          example: 4.5
+        comment:
+          type: string
+          description: Comentário da avaliação
+          example: "Passeio incrível! Recomendo para toda a família."
+        date:
+          type: string
+          format: date-time
+          description: Data da avaliação
+          example: "2025-01-20T14:30:00Z"
+        verified:
+          type: boolean
+          description: Se a avaliação foi verificada
+          example: true
+
+    Pagination:
+      type: object
+      properties:
+        current_page:
+          type: integer
+          description: Página atual
+          example: 1
+        per_page:
+          type: integer
+          description: Itens por página
+          example: 10
+        total_items:
+          type: integer
+          description: Total de itens
+          example: 150
+        total_pages:
+          type: integer
+          description: Total de páginas
+          example: 15
+        has_next_page:
+          type: boolean
+          description: Tem próxima página
+          example: true
+        has_prev_page:
+          type: boolean
+          description: Tem página anterior
+          example: false
+
+    ErrorResponse:
+      type: object
+      properties:
+        success:
+          type: boolean
+          example: false
+        error:
+          type: object
+          properties:
+            code:
+              type: integer
+              description: Código do erro
+              example: 404
+            type:
+              type: string
+              description: Tipo do erro
+              example: "NOT_FOUND"
+            message:
+              type: string
+              description: Mensagem do erro
+              example: "Recurso não encontrado"
+            details:
+              type: string
+              description: Detalhes adicionais (opcional)
+
+  # ========== CART RESERVATIONS ==========
+  /cart/reservations/add:
+    post:
+      summary: Adicionar item ao carrinho com dados de reserva
+      description: Adiciona produto ao carrinho com informações específicas para reservas de tours ou hospedagem
+      tags:
+        - Carrinho com Reservas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - product_uuid
+                - item_type
+              properties:
+                product_uuid:
+                  type: string
+                  description: UUID do produto
+                  example: "550e8400-e29b-41d4-a716-446655440000"
+                quantity:
+                  type: integer
+                  minimum: 1
+                  default: 1
+                  description: Quantidade do produto
+                item_type:
+                  type: string
+                  enum: ["product", "tour", "accommodation"]
+                  description: Tipo do item no carrinho
+                cart_uuid:
+                  type: string
+                  description: UUID do carrinho (opcional, será criado se não fornecido)
+                reservation_data:
+                  type: object
+                  description: Dados específicos da reserva
+                  properties:
+                    # Para tours
+                    reservation_date:
+                      type: string
+                      format: date
+                      description: Data da reserva (obrigatório para tours)
+                      example: "2025-01-20"
+                    adults:
+                      type: integer
+                      minimum: 1
+                      default: 1
+                      description: Número de adultos
+                    children:
+                      type: integer
+                      minimum: 0
+                      default: 0
+                      description: Número de crianças
+                    meeting_point:
+                      type: string
+                      description: Ponto de encontro
+                    # Para hospedagem
+                    check_in_date:
+                      type: string
+                      format: date
+                      description: Data de check-in (obrigatório para hospedagem)
+                      example: "2025-01-20"
+                    check_out_date:
+                      type: string
+                      format: date
+                      description: Data de check-out (obrigatório para hospedagem)
+                      example: "2025-01-23"
+                    nights:
+                      type: integer
+                      description: Número de noites
+                    room_type:
+                      type: string
+                      description: Tipo de quarto
+                    # Campos comuns
+                    special_requests:
+                      type: string
+                      description: Solicitações especiais do cliente
+      responses:
+        '200':
+          description: Item adicionado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Item adicionado ao carrinho com sucesso"
+                  data:
+                    type: object
+                    properties:
+                      cart_uuid:
+                        type: string
+                        example: "cart_65a1b2c3d4e5f6_1705123456"
+                      item_id:
+                        type: integer
+                        example: 123
+                      item_type:
+                        type: string
+                        example: "tour"
+                      reservation_data:
+                        type: object
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Produto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/reservations/items/{item_id}:
+    put:
+      summary: Atualizar dados de reserva de um item
+      description: Atualiza informações de reserva de um item específico no carrinho
+      tags:
+        - Carrinho com Reservas
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: ID do item no carrinho
+          schema:
+            type: integer
+            example: 123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                quantity:
+                  type: integer
+                  minimum: 1
+                  description: Nova quantidade
+                reservation_data:
+                  type: object
+                  description: Dados atualizados da reserva
+                  properties:
+                    reservation_date:
+                      type: string
+                      format: date
+                    check_in_date:
+                      type: string
+                      format: date
+                    check_out_date:
+                      type: string
+                      format: date
+                    adults:
+                      type: integer
+                      minimum: 1
+                    children:
+                      type: integer
+                      minimum: 0
+                    nights:
+                      type: integer
+                    room_type:
+                      type: string
+                    meeting_point:
+                      type: string
+                    special_requests:
+                      type: string
+      responses:
+        '200':
+          description: Item atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Item atualizado com sucesso"
+        '404':
+          description: Item não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Remover item do carrinho
+      description: Remove um item específico do carrinho
+      tags:
+        - Carrinho com Reservas
+      parameters:
+        - name: item_id
+          in: path
+          required: true
+          description: ID do item no carrinho
+          schema:
+            type: integer
+            example: 123
+      responses:
+        '200':
+          description: Item removido com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Item removido do carrinho com sucesso"
+        '404':
+          description: Item não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/reservations/{cart_uuid}:
+    get:
+      summary: Listar itens do carrinho com dados de reserva
+      description: Retorna todos os itens do carrinho com informações detalhadas de reserva
+      tags:
+        - Carrinho com Reservas
+      parameters:
+        - name: cart_uuid
+          in: path
+          required: true
+          description: UUID do carrinho
+          schema:
+            type: string
+            example: "cart_65a1b2c3d4e5f6_1705123456"
+      responses:
+        '200':
+          description: Lista de itens do carrinho
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: object
+                    properties:
+                      cart:
+                        type: object
+                        properties:
+                          uuid:
+                            type: string
+                            example: "cart_65a1b2c3d4e5f6_1705123456"
+                          status:
+                            type: string
+                            enum: ["open", "completed", "cancelled"]
+                            example: "open"
+                          subtotal:
+                            type: number
+                            format: float
+                            example: 360.00
+                          total:
+                            type: number
+                            format: float
+                            example: 360.00
+                          item_count:
+                            type: integer
+                            example: 2
+                          created_at:
+                            type: string
+                            format: date-time
+                          updated_at:
+                            type: string
+                            format: date-time
+                      items:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              example: 123
+                            product_uuid:
+                              type: string
+                              example: "550e8400-e29b-41d4-a716-446655440000"
+                            name:
+                              type: string
+                              example: "Passeio de Barco em Búzios"
+                            quantity:
+                              type: integer
+                              example: 1
+                            price:
+                              type: number
+                              format: float
+                              example: 120.00
+                            current_price:
+                              type: number
+                              format: float
+                              example: 120.00
+                            item_type:
+                              type: string
+                              enum: ["product", "tour", "accommodation"]
+                              example: "tour"
+                            product_type:
+                              type: string
+                              example: "tour"
+                            description:
+                              type: string
+                            location:
+                              type: string
+                              example: "Búzios"
+                            duration:
+                              type: string
+                              example: "4 horas"
+                            rating:
+                              type: number
+                              format: float
+                              example: 4.5
+                            main_image:
+                              type: string
+                              format: uri
+                            reservation_data:
+                              type: object
+                            reservation_date:
+                              type: string
+                              format: date
+                              example: "2025-01-20"
+                            check_in_date:
+                              type: string
+                              format: date
+                            check_out_date:
+                              type: string
+                              format: date
+                            adults:
+                              type: integer
+                              example: 2
+                            children:
+                              type: integer
+                              example: 1
+                            total_participants:
+                              type: integer
+                              example: 3
+                            nights:
+                              type: integer
+                            room_type:
+                              type: string
+                            meeting_point:
+                              type: string
+                            special_requests:
+                              type: string
+                            check_in_time:
+                              type: string
+                              format: time
+                            check_out_time:
+                              type: string
+                              format: time
+                            amenities:
+                              type: string
+                            cancellation_policy:
+                              type: string
+                            created_at:
+                              type: string
+                              format: date-time
+                            updated_at:
+                              type: string
+                              format: date-time
+        '404':
+          description: Carrinho não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /cart/reservations/convert:
+    post:
+      summary: Converter carrinho em reservas
+      description: Converte itens de reserva do carrinho em reservas reais no sistema
+      tags:
+        - Carrinho com Reservas
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - cart_uuid
+                - customer_data
+              properties:
+                cart_uuid:
+                  type: string
+                  description: UUID do carrinho
+                  example: "cart_65a1b2c3d4e5f6_1705123456"
+                customer_data:
+                  type: object
+                  required:
+                    - name
+                    - email
+                  properties:
+                    name:
+                      type: string
+                      description: Nome completo do cliente
+                      example: "João Silva"
+                    email:
+                      type: string
+                      format: email
+                      description: Email do cliente
+                      example: "joao@email.com"
+                    phone:
+                      type: string
+                      description: Telefone do cliente
+                      example: "+55 11 99999-9999"
+      responses:
+        '200':
+          description: Carrinho convertido em reservas com sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Carrinho convertido em reservas com sucesso"
+                  data:
+                    type: object
+                    properties:
+                      conversion_id:
+                        type: integer
+                        example: 456
+                      cart_uuid:
+                        type: string
+                        example: "cart_65a1b2c3d4e5f6_1705123456"
+                      total_reservations:
+                        type: integer
+                        example: 2
+                      reservations:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            reservation_id:
+                              type: integer
+                              example: 789
+                            reservation_code:
+                              type: string
+                              example: "SH-A1B2C3D4"
+                            item_type:
+                              type: string
+                              example: "tour"
+                            product_name:
+                              type: string
+                              example: "Passeio de Barco em Búzios"
+                            reservation_date:
+                              type: string
+                              format: date
+                              example: "2025-01-20"
+                            total_price:
+                              type: number
+                              format: float
+                              example: 360.00
+                            adults:
+                              type: integer
+                              example: 2
+                            children:
+                              type: integer
+                              example: 1
+        '400':
+          description: Dados inválidos ou carrinho vazio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Carrinho não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+tags:
+  - name: Tours
+    description: Operações relacionadas a tours e passeios
+  - name: Reservations
+    description: Operações relacionadas a reservas
+  - name: Carrinho com Reservas
+    description: Operações de carrinho com suporte a reservas de tours e hospedagem
+  - name: Products
+    description: Operações relacionadas a produtos estendidos
+  - name: Payments
+    description: Operações relacionadas a pagamentos
+  - name: Customers
+    description: Operações relacionadas a clientes
+  - name: Health
+    description: Operações de monitoramento e saúde da API
