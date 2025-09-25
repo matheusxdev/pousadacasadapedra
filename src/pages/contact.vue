@@ -10,17 +10,17 @@
           
           <div class="contact-item">
             <h3>Telefone</h3>
-            <p>+55 (11) 99999-9999</p>
+            <p><a href="https://wa.me/5522997892414" target="_blank" rel="noopener">+55 22 99789-2414</a></p>
           </div>
           
           <div class="contact-item">
             <h3>Email</h3>
-            <p>contato@casadapedra.com.br</p>
+            <p><a href="mailto:turismo@casadapedra.net">turismo@casadapedra.net</a></p>
           </div>
           
           <div class="contact-item">
             <h3>Endereço</h3>
-            <p>Rua das Flores, 123<br>Centro - São Paulo, SP<br>CEP: 01234-567</p>
+            <p><a href="https://www.google.com/maps?q=Travessa+L%C3%BAcio+Ant%C3%B4nio+Quintanilha,+57,+B%C3%BAzios+-+RJ,+28950-835" target="_blank" rel="noopener">Travessa Lúcio Antônio Quintanilha, 57<br>Centro, Búzios - RJ<br>CEP: 28950-835</a></p>
           </div>
           
           <div class="contact-item">
@@ -160,6 +160,17 @@ p {
 .contact-item p {
   color: #666;
   margin-bottom: 0;
+}
+
+.contact-item p a {
+  color: #007bff;
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.contact-item p a:hover {
+  color: #0056b3;
+  text-decoration: underline;
 }
 
 .form-group {

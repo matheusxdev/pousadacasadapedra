@@ -302,7 +302,7 @@
                   type="tel" 
                   id="whatsapp"
                   v-model="form.whatsapp"
-                  placeholder="(21) 99999-9999"
+                  placeholder="(22) 99789-2414"
                   :class="{ error: errors.whatsapp }"
                 />
                 <div v-if="errors.whatsapp" class="error">{{ errors.whatsapp }}</div>

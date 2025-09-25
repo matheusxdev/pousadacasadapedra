@@ -102,7 +102,7 @@
               <Icon name="heroicons:phone" class="trust-signals__support-icon" />
               <div class="trust-signals__support-content">
                 <span class="trust-signals__support-title">Telefone</span>
-                <span class="trust-signals__support-desc">(22) 99999-9999</span>
+                <span class="trust-signals__support-desc">(22) 99789-2414</span>
               </div>
             </div>
             
