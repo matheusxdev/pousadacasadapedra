@@ -5,7 +5,7 @@
         <div class="price-comparison__header">
           <Icon :name="discountIcon" class="price-comparison__icon" />
           <div class="price-comparison__title-section">
-            <h4 class="price-comparison__title">Economia Garantida!</h4>
+            <h4 class="price-comparison__title">{{ t('priceComparison.guaranteedSavings') }}</h4>
             <p class="price-comparison__subtitle">{{ comparison.message }}</p>
           </div>
           <div :class="`price-comparison__urgency price-comparison__urgency--${comparison.urgency}`">
@@ -20,21 +20,21 @@
               <span class="price-comparison__value">{{ formatSavings(comparison.savings) }}</span>
             </div>
             <div class="price-comparison__savings-percentage">
-              {{ comparison.percentage }}% de desconto
+              {{ comparison.percentage }}% {{ t('priceComparison.discount') }}
             </div>
           </div>
 
           <div class="price-comparison__breakdown">
             <div v-if="originalPrice" class="price-comparison__price-row">
-              <span class="price-comparison__price-label">Preço original:</span>
+              <span class="price-comparison__price-label">{{ t('priceComparison.originalPrice') }}:</span>
               <span class="price-comparison__price-original">{{ formatPrice(originalPrice) }}</span>
             </div>
             <div class="price-comparison__price-row">
-              <span class="price-comparison__price-label">Seu preço:</span>
+              <span class="price-comparison__price-label">{{ t('priceComparison.yourPrice') }}:</span>
               <span class="price-comparison__price-current">{{ formatPrice(currentPrice) }}</span>
             </div>
             <div class="price-comparison__price-row price-comparison__price-row--savings">
-              <span class="price-comparison__price-label">Você economiza:</span>
+              <span class="price-comparison__price-label">{{ t('priceComparison.youSave') }}:</span>
               <span class="price-comparison__price-savings">{{ formatPrice(comparison.savings) }}</span>
             </div>
           </div>
@@ -52,7 +52,7 @@
           </div>
           <div class="price-comparison__guarantee">
             <Icon name="heroicons:shield-check" class="price-comparison__guarantee-icon" />
-            <span>Melhor preço garantido</span>
+            <span>{{ t('priceComparison.bestPriceGuaranteed') }}</span>
           </div>
         </div>
       </div>
@@ -62,7 +62,10 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import type { PriceComparisonResult } from '@/composables/usePriceComparison'
+
+const { t } = useI18n()
 
 interface Props {
   comparison: PriceComparisonResult | null
@@ -115,11 +118,11 @@ const urgencyMessage = computed(() => {
   
   switch (props.comparison.urgency) {
     case 'high':
-      return 'Oferta por tempo limitado! Reserve agora para garantir este preço.'
+      return t('priceComparison.urgency.high')
     case 'medium':
-      return 'Boa oportunidade! Este preço pode não estar disponível por muito tempo.'
+      return t('priceComparison.urgency.medium')
     case 'low':
-      return 'Preço competitivo para esta temporada.'
+      return t('priceComparison.urgency.low')
     default:
       return ''
   }
@@ -130,11 +133,11 @@ const timerMessage = computed(() => {
   
   switch (props.comparison.reason) {
     case 'ultima_hora':
-      return 'Restam poucas vagas para esta data!'
+      return t('priceComparison.timer.lastMinute')
     case 'reserva_antecipada':
-      return 'Desconto válido até 30 dias antes da data'
+      return t('priceComparison.timer.earlyBooking')
     case 'promoção_ativa':
-      return 'Promoção por tempo limitado'
+      return t('priceComparison.timer.activePromotion')
     default:
       return ''
   }

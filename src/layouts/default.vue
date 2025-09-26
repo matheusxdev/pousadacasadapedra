@@ -17,7 +17,12 @@ const route = useRoute()
 
 // Páginas que precisam de padding-top (exceto home)
 const needsPadding = computed(() => {
-  return route.path !== '/'
+  const path = route.path
+  
+  // Remover prefixo de idioma para comparação
+  const normalizedPath = path.replace(/^\/[a-z]{2}/, '') || '/'
+  
+  return normalizedPath !== '/'
 })
 </script>
 

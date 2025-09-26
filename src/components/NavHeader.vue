@@ -102,12 +102,22 @@
           <LanguageSelector />
           
           <!-- Botão Reservar Agora (apenas desktop) -->
-          <NuxtLink 
-            :to="getNavRoute('/accommodations')" 
-            class="nav-header__book-now nav-header__book-now--desktop"
-          >
-            {{ $t('nav.bookNow') }}
-          </NuxtLink>
+          <ClientOnly>
+            <NuxtLink 
+              :to="getNavRoute('/accommodations')" 
+              class="nav-header__book-now nav-header__book-now--desktop"
+            >
+              {{ $t('nav.bookNow') }}
+            </NuxtLink>
+            <template #fallback>
+              <NuxtLink 
+                to="/accommodations" 
+                class="nav-header__book-now nav-header__book-now--desktop"
+              >
+                {{ $t('nav.bookNow') }}
+              </NuxtLink>
+            </template>
+          </ClientOnly>
         </div>
         
         <!-- Hamburger Mobile -->
@@ -116,7 +126,7 @@
           @click="toggleMobileMenu"
           :aria-expanded="mobileMenuOpen"
           aria-controls="mobile-menu"
-          aria-label="Abrir menu"
+          aria-label="{{ $t('nav.openMenu') }}"
         >
           <span class="nav-header__hamburger-line"></span>
           <span class="nav-header__hamburger-line"></span>
@@ -143,7 +153,7 @@
           <button 
             class="nav-header__mobile-close"
             @click="closeMobileMenu"
-            aria-label="Fechar menu"
+            aria-label="{{ $t('nav.closeMenu') }}"
           >
             <Icon name="heroicons:x-mark" />
           </button>
@@ -235,13 +245,24 @@
             <LanguageSelector />
           </div>
           
-          <NuxtLink 
-            :to="getNavRoute('/accommodations')" 
-            class="nav-header__mobile-book-now"
-            @click="closeMobileMenu"
-          >
-            {{ $t('nav.bookNow') }}
-          </NuxtLink>
+          <ClientOnly>
+            <NuxtLink 
+              :to="getNavRoute('/accommodations')" 
+              class="nav-header__mobile-book-now"
+              @click="closeMobileMenu"
+            >
+              {{ $t('nav.bookNow') }}
+            </NuxtLink>
+            <template #fallback>
+              <NuxtLink 
+                to="/accommodations" 
+                class="nav-header__mobile-book-now"
+                @click="closeMobileMenu"
+              >
+                {{ $t('nav.bookNow') }}
+              </NuxtLink>
+            </template>
+          </ClientOnly>
         </div>
       </div>
     </nav>

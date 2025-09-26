@@ -8,7 +8,9 @@
     "tours": "Excursões",
     "accommodations": "Acomodações",
     "transfers": "Traslados",
-    "cart": "Carrinho"
+    "cart": "Carrinho",
+    "openMenu": "Abrir menu",
+    "closeMenu": "Fechar menu"
   },
   "hero": {
     "offer": "Ganhe até 30% de desconto",
@@ -162,6 +164,29 @@
     "map": {
       "title": "Nossa Localização",
       "description": "Encontre-nos no coração de Búzios"
+    }
+  },
+  "social": {
+    "instagram": "Instagram",
+    "airbnb": "Airbnb",
+    "booking": "Booking.com"
+  },
+  "priceComparison": {
+    "guaranteedSavings": "Economia Garantida!",
+    "discount": "de desconto",
+    "originalPrice": "Preço original",
+    "yourPrice": "Seu preço",
+    "youSave": "Você economiza",
+    "bestPriceGuaranteed": "Melhor preço garantido",
+    "urgency": {
+      "high": "Oferta por tempo limitado! Reserve agora para garantir este preço.",
+      "medium": "Boa oportunidade! Este preço pode não estar disponível por muito tempo.",
+      "low": "Preço competitivo para esta temporada."
+    },
+    "timer": {
+      "lastMinute": "Restam poucas vagas para esta data!",
+      "earlyBooking": "Desconto válido até 30 dias antes da data",
+      "activePromotion": "Promoção por tempo limitado"
     }
   },
   "transfers": {

@@ -8,7 +8,9 @@
     "tours": "Tours",
     "accommodations": "Accommodations",
     "transfers": "Transfers",
-    "cart": "Cart"
+    "cart": "Cart",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
   },
   "hero": {
     "offer": "Get Up To 30% Off",
@@ -110,6 +112,90 @@
   "breadcrumbs": {
     "home": "Home",
     "transfers": "Transfers"
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "Get in touch with us",
+    "info": {
+      "title": "Contact Information",
+      "description": "Get in touch with us through the channels below",
+      "phone": {
+        "title": "Phone",
+        "number": "+55 22 99789-2414",
+        "note": "WhatsApp available"
+      },
+      "email": {
+        "title": "Email",
+        "address": "turismo at casadapedra.net",
+        "note": "Response within 24h"
+      },
+      "address": {
+        "title": "Address",
+        "location": "Travessa Lúcio Antônio Quintanilha, 57\nCentro, Búzios - RJ",
+        "note": "Downtown Búzios"
+      },
+      "hours": {
+        "title": "Business Hours",
+        "schedule": "Monday to Friday: 9am to 6pm\nSaturday: 9am to 2pm\nSunday: Closed",
+        "weekdays": "Monday to Friday: 9am to 6pm",
+        "saturday": "Saturday: 9am to 2pm",
+        "sunday": "Sunday: Closed",
+        "note": "24h service for emergencies"
+      }
+    },
+    "form": {
+      "title": "Send us a message",
+      "description": "Fill out the form below and we will contact you",
+      "name": "Name",
+      "namePlaceholder": "Your full name",
+      "email": "Email",
+      "emailPlaceholder": "your email",
+      "phone": "Phone",
+      "phonePlaceholder": "(22) 99999-9999",
+      "subject": "Subject",
+      "subjectPlaceholder": "Select a subject",
+      "subjects": {
+        "general": "General Information",
+        "booking": "Booking",
+        "support": "Support",
+        "tour": "Tour Information",
+        "accommodation": "Accommodation Information",
+        "other": "Other"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Describe how we can help you...",
+      "submit": "Send Message",
+      "send": "Send Message",
+      "sending": "Sending...",
+      "success": "Message sent successfully! We will contact you soon."
+    },
+    "map": {
+      "title": "Our Location",
+      "description": "Find us in the heart of Búzios"
+    }
+  },
+  "social": {
+    "instagram": "Instagram",
+    "airbnb": "Airbnb",
+    "booking": "Booking.com"
+  },
+  "priceComparison": {
+    "guaranteedSavings": "Guaranteed Savings!",
+    "discount": "discount",
+    "originalPrice": "Original price",
+    "yourPrice": "Your price",
+    "youSave": "You save",
+    "bestPriceGuaranteed": "Best price guaranteed",
+    "urgency": {
+      "high": "Limited time offer! Book now to guarantee this price.",
+      "medium": "Good opportunity! This price may not be available for long.",
+      "low": "Competitive price for this season."
+    },
+    "timer": {
+      "lastMinute": "Few spots left for this date!",
+      "earlyBooking": "Discount valid until 30 days before the date",
+      "activePromotion": "Limited time promotion"
+    }
   },
   "transfers": {
     "title": "Transfers",
@@ -541,5 +627,13 @@
   },
   "whatsapp": {
     "tooltip": "Chat on WhatsApp"
+  },
+  "weather": {
+    "loading": "Loading weather...",
+    "error": "Weather unavailable",
+    "temperature": "Temperature",
+    "humidity": "Humidity",
+    "windSpeed": "Wind Speed",
+    "description": "Description"
   }
 }

@@ -162,6 +162,9 @@
   display: flex;
   justify-content: center;
   align-items: center;
+  width: 100%;
+  height: 100%;
+  min-height: 400px;
 }
 
 .app-download-section__phone {
@@ -176,8 +179,8 @@
 
 .app-download-section__phone--back {
   position: absolute;
-  left: 0;
-  transform: rotate(-15deg) translateX(-20px);
+  left: 50%;
+  transform: translateX(-50%) rotate(-15deg) translateX(-30px);
   z-index: 1;
   opacity: 0.8;
 }
@@ -185,7 +188,8 @@
 .app-download-section__phone--front {
   position: relative;
   z-index: 2;
-  transform: rotate(5deg) translateX(20px);
+  left: 50%;
+  transform: translateX(-50%) rotate(5deg) translateX(30px);
 }
 
 .app-download-section__phone-screen {
@@ -522,11 +526,11 @@
   }
   
   .app-download-section__phone--back {
-    transform: rotate(-10deg) translateX(-10px);
+    transform: translateX(-50%) rotate(-10deg) translateX(-20px);
   }
   
   .app-download-section__phone--front {
-    transform: rotate(3deg) translateX(10px);
+    transform: translateX(-50%) rotate(3deg) translateX(20px);
   }
   
   .app-download-section__download-btn {

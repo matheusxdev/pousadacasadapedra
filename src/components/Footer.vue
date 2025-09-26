@@ -23,7 +23,7 @@
                 href="https://instagram.com/viajescasadapedra"
                 target="_blank"
                 rel="noopener"
-                aria-label="Instagram"
+                aria-label="{{ $t('social.instagram') }}"
                 class="social-link instagram"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="simple-icons:instagram" class="iconify iconify--simple-icons">
@@ -34,7 +34,7 @@
                 href="#"
                 target="_blank"
                 rel="noopener"
-                aria-label="Airbnb"
+                aria-label="{{ $t('social.airbnb') }}"
                 class="social-link airbnb"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="simple-icons:airbnb" class="iconify iconify--simple-icons">
@@ -45,7 +45,7 @@
                 href="#"
                 target="_blank"
                 rel="noopener"
-                aria-label="Booking"
+                aria-label="{{ $t('social.booking') }}"
                 class="social-link booking"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" width="1em" height="1em" viewBox="0 0 24 24" data-icon="simple-icons:bookingdotcom" class="iconify iconify--simple-icons">
@@ -422,11 +422,40 @@
   .footer-content {
     grid-template-columns: 1fr;
     gap: 2rem;
+    text-align: center;
+  }
+  
+  .footer-brand {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .brand-tagline {
+    max-width: none;
+    text-align: center;
   }
   
   .footer-nav {
     grid-template-columns: repeat(2, 1fr);
     gap: 1.5rem;
+    text-align: center;
+  }
+  
+  .nav-column {
+    text-align: center;
+  }
+  
+  .footer-contact {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .contact-info {
+    align-items: center;
+  }
+  
+  .contact-item {
+    justify-content: center;
   }
   
   .map-section {
@@ -452,9 +481,32 @@
   .footer-nav {
     grid-template-columns: 1fr;
     gap: 1rem;
+    text-align: center;
+  }
+  
+  .nav-column {
+    text-align: center;
   }
   
   .social-links {
+    justify-content: center;
+  }
+  
+  .footer-brand {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .footer-contact {
+    align-items: center;
+    text-align: center;
+  }
+  
+  .contact-info {
+    align-items: center;
+  }
+  
+  .contact-item {
     justify-content: center;
   }
   
