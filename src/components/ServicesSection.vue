@@ -13,22 +13,24 @@
           </NuxtLink>
         </div>
         
-        <!-- Imagens à direita -->
-        <div class="services-section__images">
-          <div class="services-section__image services-section__image--left">
+        <!-- Vídeo à direita -->
+        <div class="services-section__video-container">
+          <video 
+            class="services-section__video"
+            autoplay 
+            muted 
+            loop 
+            playsinline
+            preload="metadata"
+          >
+            <source src="/videos/services.mp4" type="video/mp4">
+            <!-- Fallback para navegadores que não suportam vídeo -->
             <img 
               src="https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2070&q=80" 
-              alt="Restaurante da Grupo Caminué"
-              loading="lazy"
+              alt="Serviços da Pousada"
+              class="services-section__fallback-image"
             >
-          </div>
-          <div class="services-section__image services-section__image--right">
-            <img 
-              src="https://images.unsplash.com/photo-1571896349842-33c89424de2d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&auto=format&fit=crop&w=2080&q=80" 
-              alt="Salão de eventos da Grupo Caminué"
-              loading="lazy"
-            >
-          </div>
+          </video>
         </div>
       </div>
     </div>
@@ -132,36 +134,29 @@ const { stats, loading, error } = useServiceStats()
   margin-top: 0.25rem;
 }
 
-.services-section__images {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  height: 500px;
-}
-
-.services-section__image {
+/* Video Container (substituindo as imagens) */
+.services-section__video-container {
   border-radius: 12px;
   overflow: hidden;
   position: relative;
+  height: 500px;
 }
 
-.services-section__image img {
+.services-section__video {
   width: 100%;
   height: 100%;
   object-fit: cover;
   transition: transform 0.3s ease;
 }
 
-.services-section__image:hover img {
+.services-section__video-container:hover .services-section__video {
   transform: scale(1.05);
 }
 
-.services-section__image--left {
-  align-self: start;
-}
-
-.services-section__image--right {
-  align-self: end;
+.services-section__fallback-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Responsive */
@@ -176,7 +171,7 @@ const { stats, loading, error } = useServiceStats()
     text-align: center;
   }
   
-  .services-section__images {
+  .services-section__video-container {
     height: 400px;
   }
 }
@@ -207,9 +202,8 @@ const { stats, loading, error } = useServiceStats()
     font-size: 2rem;
   }
   
-  .services-section__images {
+  .services-section__video-container {
     height: 300px;
-    gap: 0.5rem;
   }
 }
 

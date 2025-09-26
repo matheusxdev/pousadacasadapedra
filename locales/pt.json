@@ -111,6 +111,59 @@
     "home": "Início",
     "transfers": "Traslados"
   },
+  "contact": {
+    "title": "Entre em Contato",
+    "subtitle": "Estamos aqui para ajudar você a planejar sua viagem perfeita",
+    "info": {
+      "title": "Informações de Contato",
+      "description": "Entre em contato conosco através dos canais abaixo",
+      "phone": {
+        "title": "Telefone",
+        "note": "WhatsApp disponível"
+      },
+      "email": {
+        "title": "Email",
+        "note": "Resposta em até 24h"
+      },
+      "address": {
+        "title": "Endereço",
+        "note": "Centro de Búzios"
+      },
+      "hours": {
+        "title": "Horário de Funcionamento",
+        "weekdays": "Segunda a Sexta: 9h às 18h",
+        "saturday": "Sábado: 9h às 14h",
+        "sunday": "Domingo: Fechado",
+        "note": "Atendimento 24h para emergências"
+      }
+    },
+    "form": {
+      "title": "Envie sua Mensagem",
+      "description": "Preencha o formulário abaixo e entraremos em contato",
+      "name": "Nome",
+      "namePlaceholder": "Seu nome completo",
+      "email": "Email",
+      "emailPlaceholder": "seu email",
+      "phone": "Telefone",
+      "phonePlaceholder": "(22) 99999-9999",
+      "subject": "Assunto",
+      "subjectPlaceholder": "Selecione um assunto",
+      "subjects": {
+        "tour": "Informações sobre Tours",
+        "accommodation": "Informações sobre Acomodações",
+        "booking": "Reservas",
+        "other": "Outros"
+      },
+      "message": "Mensagem",
+      "messagePlaceholder": "Descreva como podemos ajudar você...",
+      "send": "Enviar Mensagem",
+      "sending": "Enviando..."
+    },
+    "map": {
+      "title": "Nossa Localização",
+      "description": "Encontre-nos no coração de Búzios"
+    }
+  },
   "transfers": {
     "title": "Traslados",
     "metaDescription": "Serviços de traslado da Grupo Caminué - Rent a Car, Transfer Regular e Transfer Privado",
