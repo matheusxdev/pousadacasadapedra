@@ -36,4 +36,11 @@ const needsPadding = computed(() => {
 .app-main--with-padding {
   padding-top: 120px; /* Altura do header fixo */
 }
+
+/* Responsivo para mobile */
+@media (max-width: 768px) {
+  .app-main--with-padding {
+    padding-top: 100px; /* Altura reduzida para mobile */
+  }
+}
 </style>

@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Home",
-    "rooms": "Rooms",
+    "rooms": "Pousadas",
     "about": "About Us",
     "contact": "Contact",
     "bookNow": "Book Now",
@@ -70,6 +70,11 @@
     "offer": "Get up to 30% off",
     "title": "Facilities We Provide",
     "description": "Discover all the amenities and services we have prepared to make your stay even more special and comfortable."
+  },
+  "pousadas": {
+    "title": "Our Pousadas",
+    "description": "Choose from our three exclusive pousadas in Búzios, each with its unique charm",
+    "viewRooms": "View Rooms"
   },
   "recommended": {
     "title": "Recommended Accommodations",
@@ -481,7 +486,9 @@
     }
   },
   "accommodations": {
-    "subtitle": "Find the perfect accommodation for your trip",
+    "subtitle": "Choose from our three exclusive pousadas in Búzios",
+    "viewRoom": "View Room",
+    "perNight": "per night",
     "noResultsDescription": "We couldn't find accommodations that match your search criteria.",
     "filters": {
       "location": "Location",

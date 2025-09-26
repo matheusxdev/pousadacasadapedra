@@ -27,8 +27,8 @@
       </div>
     </div>
 
-    <!-- Recommended Accommodations Section -->
-    <RecommendedAccommodations />
+    <!-- Recommended Pousadas Section -->
+    <RecommendedPousadas />
 
     <!-- Facilities Section -->
     <FacilitiesSection />
@@ -44,8 +44,8 @@
     <ToursSection :items="tours" :cta="$t('home.sections.seeAllTours')" to="/tours" />
     -->
 
-    <!-- Stays Section - PRINCIPAL FOCO -->
-    <StaysSection :items="stays" :cta="$t('home.sections.seeAllAccommodations')" to="/accommodations" />
+    <!-- Rooms Slider Section -->
+    <RoomsSlider />
 
     <!-- App Download Section -->
     <AppDownloadSection />
@@ -82,7 +82,6 @@ useHead({
 
 const featured = ref<FeaturedItem[]>([])
 // const tours = ref<FeaturedItem[]>([]) // DESATIVADO TEMPORARIAMENTE
-const stays = ref<FeaturedItem[]>([])
 
 // Client-side check for hydration safety
 const isClient = ref(false)
@@ -152,9 +151,6 @@ const loadHomeData = async () => {
     // const { data: toursData } = await getFeaturedTours({ limit: 6 })
     // tours.value = toursData.value || []
 
-    // Load stays - PRINCIPAL FOCO
-    const { data: staysData } = await getFeaturedStays({ limit: 12 })
-    stays.value = staysData.value || []
   } catch (error) {
     console.error('Error loading home data:', error)
   }

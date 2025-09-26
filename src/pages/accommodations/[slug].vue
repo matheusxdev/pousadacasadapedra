@@ -618,15 +618,48 @@ const touchEndX = ref(0)
 
 // Computed properties para imagens
 const images = computed<string[]>(() => {
-  if (accommodation.value?.images && accommodation.value.images.length > 0) {
-    // Se images é um array de objetos com url, extrair as URLs
-    if (typeof accommodation.value.images[0] === 'object' && accommodation.value.images[0].url) {
-      return accommodation.value.images.map((img: any) => img.url)
-    }
-    // Se images é um array de strings, usar diretamente
-    return accommodation.value.images
+  // Tentar encontrar todas as imagens disponíveis
+  let allImages: string[] = []
+  
+  // 1. Verificar array images (formato da API StarHub)
+  if (accommodation.value?.images && Array.isArray(accommodation.value.images)) {
+    allImages = accommodation.value.images.map((img: any) => {
+      if (typeof img === 'string') {
+        return img
+      } else if (typeof img === 'object' && img.url) {
+        return img.url
+      }
+      return null
+    }).filter((url: string | null): url is string => url !== null)
   }
-  return accommodation.value?.main_image ? [accommodation.value.main_image] : []
+  
+  // 2. Verificar outros campos de imagem
+  const additionalFields = ['gallery', 'photos', 'pictures', 'image_urls', 'photo_urls', 'media', 'media_urls', 'attachments', 'files']
+  additionalFields.forEach(field => {
+    const fieldValue = (accommodation.value as any)?.[field]
+    if (fieldValue && Array.isArray(fieldValue)) {
+      const fieldImages = fieldValue.map((img: any) => {
+        if (typeof img === 'string') {
+          return img
+        } else if (typeof img === 'object' && img.url) {
+          return img.url
+        }
+        return null
+      }).filter((url: string | null): url is string => url !== null)
+      
+      allImages = [...allImages, ...fieldImages]
+    }
+  })
+  
+  // 3. Adicionar main_image se não estiver na lista
+  if (accommodation.value?.main_image && !allImages.includes(accommodation.value.main_image)) {
+    allImages.unshift(accommodation.value.main_image)
+  }
+  
+  // Remover duplicatas
+  const uniqueImages = [...new Set(allImages)]
+  
+  return uniqueImages.length > 0 ? uniqueImages : []
 })
 
 const selectedImage = computed(() => {
@@ -948,28 +981,23 @@ const pricingError = ref<string | null>(null)
         error.value = null
 
         
-        // Usar a nova rota unificada para buscar accommodations
-        const { getAccommodationsUnified, getProductBySlug } = useUnifiedProducts()
-        
+        // Usar endpoint específico para buscar accommodation com todas as imagens
         let accommodationData = null
         
         try {
-          // Estratégia 1: Buscar accommodations unificadas primeiro
-          const unifiedResult = await getAccommodationsUnified({ limit: 100 })
-          accommodationData = unifiedResult.data.find((p: any) => p.slug === slug || p.uuid === slug)
+          // Estratégia 1: Buscar accommodation específico com endpoint dedicado
+          const response = await $fetch(`/api/accommodations/${slug}`) as any
+          accommodationData = response.data
+        } catch (specificError) {
+          console.warn('⚠️ Falha no endpoint específico, tentando busca geral:', specificError)
           
-          if (accommodationData) {
-          }
-        } catch (unifiedError) {
-          console.warn('⚠️ Falha na rota unificada, tentando busca específica:', unifiedError)
-          
-          // Estratégia 2: Buscar produto específico por slug
+          // Estratégia 2: Buscar na lista geral como fallback
           try {
-            accommodationData = await getProductBySlug(slug, true)
-            if (accommodationData) {
-            }
-          } catch (specificError) {
-            console.warn('⚠️ Falha na busca específica:', specificError)
+            const { getAccommodationsUnified } = useUnifiedProducts()
+            const unifiedResult = await getAccommodationsUnified({ limit: 100 })
+            accommodationData = unifiedResult.data.find((p: any) => p.slug === slug || p.uuid === slug)
+          } catch (unifiedError) {
+            console.warn('⚠️ Falha na busca geral:', unifiedError)
           }
         }
 

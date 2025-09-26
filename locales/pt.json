@@ -1,7 +1,7 @@
 {
   "nav": {
     "home": "Início",
-    "rooms": "Quartos",
+    "rooms": "Pousadas",
     "about": "Sobre Nós",
     "contact": "Contato",
     "bookNow": "Reservar Agora",
@@ -70,6 +70,11 @@
     "offer": "Ganhe até 30% de desconto",
     "title": "Facilidades que Oferecemos",
     "description": "Descubra todas as comodidades e serviços que preparamos para tornar sua estadia ainda mais especial e confortável."
+  },
+  "pousadas": {
+    "title": "Nossas Pousadas",
+    "description": "Escolha entre nossas três pousadas exclusivas em Búzios, cada uma com seu charme único",
+    "viewRooms": "Ver Quartos"
   },
   "recommended": {
     "title": "Pousadas Recomendadas",
@@ -500,7 +505,9 @@
     }
   },
   "accommodations": {
-    "subtitle": "Encontre a acomodação perfeita para sua viagem",
+    "subtitle": "Escolha entre nossas três pousadas exclusivas em Búzios",
+    "viewRoom": "Ver Quarto",
+    "perNight": "por noite",
     "noResultsDescription": "Não encontramos acomodações que correspondam aos seus critérios de busca.",
     "filters": {
       "location": "Localização",

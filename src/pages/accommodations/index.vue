@@ -2,134 +2,169 @@
   <div class="accommodations-page">
     <div class="accommodations-page__header">
       <div class="container">
-        <h1>{{ $t('nav.accommodations') }}</h1>
-        <p>{{ $t('accommodations.subtitle') }}</p>
-      </div>
-    </div>
-    
-    <div class="accommodations-page__filters">
-      <div class="container">
-        <div class="filters">
-          <div class="filters__group">
-            <Icon name="heroicons:magnifying-glass" />
-            <input 
-              type="text" 
-              :placeholder="$t('common.search')"
-              v-model="filters.search"
-              @input="debouncedSearch"
-            />
-          </div>
-          
-          <div class="filters__group">
-            <Icon name="heroicons:map-pin" />
-            <select v-model="filters.location">
-              <option value="">{{ $t('common.allLocations') }}</option>
-              <option v-for="location in locations" :key="location" :value="location">
-                {{ location }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="filters__group">
-            <Icon name="heroicons:building-office" />
-            <select v-model="filters.type">
-              <option value="">{{ $t('common.allTypes') }}</option>
-              <option v-for="type in types" :key="type" :value="type">
-                {{ type }}
-              </option>
-            </select>
-          </div>
-          
-          <div class="filters__group">
-            <Icon name="heroicons:currency-dollar" />
-            <select v-model="filters.priceRange">
-              <option value="">{{ $t('common.allPrices') }}</option>
-              <option value="0-150">{{ $t('common.under150') }}</option>
-              <option value="150-300">{{ $t('common.150to300') }}</option>
-              <option value="300-500">{{ $t('common.300to500') }}</option>
-              <option value="500+">{{ $t('common.over500') }}</option>
-            </select>
-          </div>
-        </div>
+        <h1>{{ $t('nav.rooms') }}</h1>
+        <p>Desfrute de acomodações confortáveis ​​e bem localizadas com serviço personalizado para tornar sua viagem inesquecível.</p>
+        <p class="accommodations-page__cta">Reserve agora e viva uma experiência única.</p>
       </div>
     </div>
     
     <div class="accommodations-page__content">
       <div class="container">
         <!-- Loading State -->
-        <div v-if="loading" class="accommodations-page__loading">
-          <div class="accommodations-page__skeleton-grid">
-            <div v-for="i in 8" :key="i" class="accommodations-page__skeleton-card">
-              <div class="accommodations-page__skeleton-image"></div>
-              <div class="accommodations-page__skeleton-content">
-                <div class="accommodations-page__skeleton-title"></div>
-                <div class="accommodations-page__skeleton-subtitle"></div>
-                <div class="accommodations-page__skeleton-price"></div>
+        <div v-if="loading" class="loading-state">
+          <div class="loading-spinner"></div>
+          <p>Carregando acomodações...</p>
+        </div>
+
+        <!-- Error State -->
+        <div v-else-if="error" class="error-state">
+          <Icon name="heroicons:exclamation-triangle" class="error-icon" />
+          <h3>Erro ao carregar acomodações</h3>
+          <p>{{ error }}</p>
+          <button @click="fetchAccommodations" class="retry-button">
+            Tentar novamente
+          </button>
+        </div>
+
+        <!-- Content -->
+        <div v-else>
+        <!-- Pousada Casa da Pedra -->
+        <div class="pousada-section" :class="{ 'pousada-section--active': activePousada === 'casa-da-pedra' }">
+          <div class="pousada-section__header">
+            <div class="pousada-section__logo">
+              <img :src="getImageSrc('logo_casadapedra.png')" alt="Pousada Casa da Pedra" />
+            </div>
+            <div class="pousada-section__info">
+              <h2>Pousada Casa da Pedra</h2>
+              <p>Apenas 40 metros da Rua das Pedras - Centro de Búzios</p>
+              <div class="pousada-section__features">
+                <span class="feature">WiFi Gratuito</span>
+                <span class="feature">Recepção 24h</span>
+                <span class="feature">Café da Manhã</span>
+                <span class="feature">Ar Condicionado</span>
+              </div>
+            </div>
+            <button 
+              @click="togglePousada('casa-da-pedra')"
+              class="pousada-section__toggle"
+            >
+              <Icon :name="activePousada === 'casa-da-pedra' ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" />
+            </button>
+          </div>
+          
+          <div v-if="activePousada === 'casa-da-pedra'" class="pousada-section__rooms">
+            <div class="rooms-grid">
+              <div v-for="room in casaDaPedraRooms" :key="room.id" class="room-card">
+                <div class="room-card__image">
+                  <img :src="room.image" :alt="room.name" />
+                </div>
+                <div class="room-card__content">
+                  <h3>{{ room.name }}</h3>
+                  <p>{{ cleanDescription(room.description, 120) }}</p>
+                  <div class="room-card__price">
+                    <span class="price">{{ formatPrice(room.current_price || room.price) }}</span>
+                    <span v-if="room.current_price && room.current_price !== 0 && room.current_price !== '0'" class="period">{{ $t('accommodations.perNight') }}</span>
+                  </div>
+                  <button @click="viewRoom(room)" class="room-card__button">
+                    {{ $t('accommodations.viewRoom') }}
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        
-        <!-- Error State -->
-        <div v-else-if="error" class="accommodations-page__error">
-          <Icon name="heroicons:exclamation-triangle" />
-          <h3>{{ $t('common.error') }}</h3>
-          <p>{{ error }}</p>
-          <button @click="loadAccommodations" class="accommodations-page__retry">
-            {{ $t('common.tryAgain') }}
-          </button>
-        </div>
-        
-        <!-- Empty State -->
-        <div v-else-if="accommodations.length === 0" class="accommodations-page__empty">
-          <Icon name="heroicons:magnifying-glass" />
-          <h3>{{ $t('common.noResults') }}</h3>
-          <p>{{ $t('accommodations.noResultsDescription') }}</p>
-          <button @click="clearFilters" class="accommodations-page__clear-filters">
-            {{ $t('common.clearFilters') }}
-          </button>
-        </div>
-        
-        <!-- Accommodations Grid -->
-        <div v-else class="accommodations-page__grid">
-          <FeaturedCard 
-            v-for="accommodation in accommodations" 
-            :key="accommodation.id"
-            :item="accommodation"
-          />
-        </div>
-        
-        <!-- Pagination -->
-        <div v-if="accommodations.length > 0 && totalPages > 1" class="accommodations-page__pagination">
-          <button 
-            class="pagination__button"
-            :disabled="currentPage === 1"
-            @click="goToPage(currentPage - 1)"
-          >
-            <Icon name="heroicons:chevron-left" />
-            {{ $t('common.previous') }}
-          </button>
-          
-          <div class="pagination__pages">
-            <button
-              v-for="page in visiblePages"
-              :key="page"
-              class="pagination__page"
-              :class="{ 'pagination__page--active': page === currentPage }"
-              @click="goToPage(page)"
+
+        <!-- Pousada Canoa do Mar -->
+        <div class="pousada-section" :class="{ 'pousada-section--active': activePousada === 'canoa-do-mar' }">
+          <div class="pousada-section__header">
+            <div class="pousada-section__logo">
+              <img :src="getImageSrc('logo_canoadomar.png')" alt="Pousada Canoa do Mar" />
+            </div>
+            <div class="pousada-section__info">
+              <h2>Pousada Canoa do Mar</h2>
+              <p>Experiência única à beira-mar em Búzios - A menos de 1km da Praia João Fernandes</p>
+              <div class="pousada-section__features">
+                <span class="feature">WiFi Gratuito</span>
+                <span class="feature">Recepção 24h</span>
+                <span class="feature">Café da Manhã</span>
+                <span class="feature">Ar Condicionado</span>
+              </div>
+            </div>
+            <button 
+              @click="togglePousada('canoa-do-mar')"
+              class="pousada-section__toggle"
             >
-              {{ page }}
+              <Icon :name="activePousada === 'canoa-do-mar' ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" />
             </button>
           </div>
           
-          <button 
-            class="pagination__button"
-            :disabled="currentPage === totalPages"
-            @click="goToPage(currentPage + 1)"
-          >
-            {{ $t('common.next') }}
-            <Icon name="heroicons:chevron-right" />
-          </button>
+          <div v-if="activePousada === 'canoa-do-mar'" class="pousada-section__rooms">
+            <div class="rooms-grid">
+              <div v-for="room in canoaDoMarRooms" :key="room.id" class="room-card">
+                <div class="room-card__image">
+                  <img :src="room.image" :alt="room.name" />
+                </div>
+                <div class="room-card__content">
+                  <h3>{{ room.name }}</h3>
+                  <p>{{ cleanDescription(room.description, 120) }}</p>
+                  <div class="room-card__price">
+                    <span class="price">{{ formatPrice(room.current_price || room.price) }}</span>
+                    <span v-if="room.current_price && room.current_price !== 0 && room.current_price !== '0'" class="period">{{ $t('accommodations.perNight') }}</span>
+                  </div>
+                  <button @click="viewRoom(room)" class="room-card__button">
+                    {{ $t('accommodations.viewRoom') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pousada Casa Cacau -->
+        <div class="pousada-section" :class="{ 'pousada-section--active': activePousada === 'casa-cacau' }">
+          <div class="pousada-section__header">
+            <div class="pousada-section__logo">
+              <img :src="getImageSrc('logo_casacacau.avif')" alt="Pousada Casa Cacau" />
+            </div>
+            <div class="pousada-section__info">
+              <h2>Pousada Casa Cacau</h2>
+              <p>Charme e tranquilidade em ambiente acolhedor</p>
+              <div class="pousada-section__features">
+                <span class="feature">WiFi Gratuito</span>
+                <span class="feature">Recepção 24h</span>
+                <span class="feature">Café da Manhã</span>
+                <span class="feature">Ar Condicionado</span>
+              </div>
+            </div>
+            <button 
+              @click="togglePousada('casa-cacau')"
+              class="pousada-section__toggle"
+            >
+              <Icon :name="activePousada === 'casa-cacau' ? 'heroicons:chevron-up' : 'heroicons:chevron-down'" />
+            </button>
+          </div>
+          
+          <div v-if="activePousada === 'casa-cacau'" class="pousada-section__rooms">
+            <div class="rooms-grid">
+              <div v-for="room in casaCacauRooms" :key="room.id" class="room-card">
+                <div class="room-card__image">
+                  <img :src="room.image" :alt="room.name" />
+                </div>
+                <div class="room-card__content">
+                  <h3>{{ room.name }}</h3>
+                  <p>{{ cleanDescription(room.description, 120) }}</p>
+                  <div class="room-card__price">
+                    <span class="price">{{ formatPrice(room.current_price || room.price) }}</span>
+                    <span v-if="room.current_price && room.current_price !== 0 && room.current_price !== '0'" class="period">{{ $t('accommodations.perNight') }}</span>
+                  </div>
+                  <button @click="viewRoom(room)" class="room-card__button">
+                    {{ $t('accommodations.viewRoom') }}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
         </div>
       </div>
     </div>
@@ -137,160 +172,210 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
-import { useI18n } from 'vue-i18n'
-import type { FeaturedItem } from '@/composables/useFeatured'
+import { ref, onMounted, computed } from 'vue'
 
-const { t } = useI18n()
-const { getFeaturedStays } = useFeatured()
-
-useHead({
-  title: 'Acomodações em Búzios — Casa da Pedra',
-  meta: [
-    { name: 'description', content: 'Encontre a acomodação perfeita para sua viagem em Búzios. Hotéis, pousadas e hospedagens exclusivas.' },
-    { property: 'og:title', content: 'Acomodações em Búzios — Casa da Pedra' },
-    { property: 'og:description', content: 'Encontre a acomodação perfeita para sua viagem em Búzios. Hotéis, pousadas e hospedagens exclusivas.' },
-    { property: 'og:image', content: '/og/accommodations.jpg' },
-    { name: 'twitter:card', content: 'summary_large_image' }
-  ]
-})
-
-// Estado reativo
-const accommodations = ref<FeaturedItem[]>([])
+const activePousada = ref<string | null>(null)
+const accommodations = ref<any[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
-const currentPage = ref(1)
-const totalPages = ref(1)
-const totalItems = ref(0)
 
-// Filtros
-const filters = ref({
-  search: '',
-  location: '',
-  type: '',
-  priceRange: ''
-})
+// Dados das pousadas
+const pousadas = [
+  {
+    id: 'casa-da-pedra',
+    name: 'Pousada Casa da Pedra',
+    description: 'Conforto e hospitalidade no coração de Búzios',
+    logo: 'logo_casadapedra.png',
+    features: ['Wi-Fi Gratuito', 'Ar Condicionado', 'Café da Manhã'],
+    subcategory: 'casa-da-pedra'
+  },
+  {
+    id: 'canoa-do-mar',
+    name: 'Pousada Canoa do Mar',
+    description: 'Experiência única à beira-mar em Búzios',
+    logo: 'logo_canoadomar.png',
+    features: ['Vista para o Mar', 'Piscina', 'Estacionamento'],
+    subcategory: 'canoa-do-mar'
+  },
+  {
+    id: 'casa-cacau',
+    name: 'Pousada Casa Cacau',
+    description: 'Charme e tranquilidade em ambiente acolhedor',
+    logo: 'logo_casacacau.avif',
+    features: ['Jardim Privativo', 'Café Colonial', 'Recepção 24h'],
+    subcategory: 'casa-cacau'
+  }
+]
 
-// Opções de filtro (seriam carregadas da API)
-const locations = ref(['Rio de Janeiro', 'São Paulo', 'Brasília', 'Salvador', 'Florianópolis'])
-const types = ref(['Hotel', 'Pousada', 'Apartamento', 'Casa', 'Resort'])
+// Computed para filtrar quartos por pousada
+const casaDaPedraRooms = computed(() => 
+  accommodations.value.filter(room => {
+    const subcategory = room.subcategory?.toString() || ''
+    const category = room.category?.toString() || ''
+    const name = room.name?.toLowerCase() || ''
+    const slug = room.slug?.toLowerCase() || ''
+    
+    // Filtro por subcategory ID (1 = Casa da Pedra) ou por nome/slug
+    return subcategory === '1' ||
+           name.includes('casa da pedra') ||
+           slug.includes('casa-pedra') ||
+           slug.includes('casa-pedra')
+  })
+)
 
-// Debounce para busca
-let searchTimeout: NodeJS.Timeout
-const debouncedSearch = () => {
-  clearTimeout(searchTimeout)
-  searchTimeout = setTimeout(() => {
-    currentPage.value = 1
-    loadAccommodations()
-  }, 500)
+const canoaDoMarRooms = computed(() => 
+  accommodations.value.filter(room => {
+    const subcategory = room.subcategory?.toString() || ''
+    const category = room.category?.toString() || ''
+    const name = room.name?.toLowerCase() || ''
+    const slug = room.slug?.toLowerCase() || ''
+    
+    // Filtro por subcategory ID (2 = Canoa do Mar) ou por nome/slug
+    return subcategory === '2' ||
+           name.includes('canoa do mar') ||
+           slug.includes('canoa-mar') ||
+           slug.includes('canoa')
+  })
+)
+
+const casaCacauRooms = computed(() => 
+  accommodations.value.filter(room => {
+    const subcategory = room.subcategory?.toString() || ''
+    const category = room.category?.toString() || ''
+    const name = room.name?.toLowerCase() || ''
+    const slug = room.slug?.toLowerCase() || ''
+    
+    // Filtro por subcategory ID (3 = Casa Cacau) ou por nome/slug
+    return subcategory === '3' ||
+           name.includes('casa cacau') ||
+           slug.includes('casa-cacau') ||
+           slug.includes('cacau')
+  })
+)
+
+const togglePousada = (pousadaId: string) => {
+  activePousada.value = activePousada.value === pousadaId ? null : pousadaId
 }
 
-// Carregar acomodações
-const loadAccommodations = async () => {
+const getImageSrc = (logoName: string) => {
+  // Usar caminhos da pasta public para evitar problemas de SSR
+  return `/images/${logoName}`
+}
+
+// Função para formatar preço
+const formatPrice = (price: any) => {
+  if (!price || price === 0 || price === '0') {
+    return 'Preço a consultar'
+  }
+  
+  // Se for número, formatar como moeda
+  const numPrice = parseFloat(price)
+  if (!isNaN(numPrice)) {
+    return `R$ ${numPrice.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+  }
+  
+  // Se já for string formatada, usar como está
+  return price
+}
+
+// Função para limpar HTML e encurtar descrição
+const cleanDescription = (description: string, maxLength: number = 150) => {
+  if (!description) return ''
+  
+  // Remover tags HTML mas preservar entidades de acentos
+  let cleanText = description
+    .replace(/<[^>]*>/g, '') // Remove todas as tags HTML
+    .replace(/\s+/g, ' ') // Remove espaços extras
+    .trim()
+  
+  // Decodificar entidades HTML para preservar acentos
+  if (typeof window !== 'undefined') {
+    // Cliente: usar DOM para decodificar
+    const tempDiv = document.createElement('div')
+    tempDiv.innerHTML = cleanText
+    cleanText = tempDiv.textContent || tempDiv.innerText || cleanText
+  } else {
+    // Servidor: decodificar entidades básicas manualmente
+    cleanText = cleanText
+      .replace(/&aacute;/g, 'á')
+      .replace(/&eacute;/g, 'é')
+      .replace(/&iacute;/g, 'í')
+      .replace(/&oacute;/g, 'ó')
+      .replace(/&uacute;/g, 'ú')
+      .replace(/&atilde;/g, 'ã')
+      .replace(/&otilde;/g, 'õ')
+      .replace(/&ccedil;/g, 'ç')
+      .replace(/&Aacute;/g, 'Á')
+      .replace(/&Eacute;/g, 'É')
+      .replace(/&Iacute;/g, 'Í')
+      .replace(/&Oacute;/g, 'Ó')
+      .replace(/&Uacute;/g, 'Ú')
+      .replace(/&Atilde;/g, 'Ã')
+      .replace(/&Otilde;/g, 'Õ')
+      .replace(/&Ccedil;/g, 'Ç')
+      .replace(/&nbsp;/g, ' ')
+      .replace(/&amp;/g, '&')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+  }
+  
+  // Encurtar se necessário
+  if (cleanText.length > maxLength) {
+    cleanText = cleanText.substring(0, maxLength).trim() + '...'
+  }
+  
+  return cleanText
+}
+
+const viewRoom = (room: any) => {
+  // Usar slug, uuid ou id como fallback
+  const identifier = room.slug || room.uuid || room.id
+  navigateTo(`/accommodations/${identifier}`)
+}
+
+// Função para buscar acomodações da API
+const fetchAccommodations = async () => {
   try {
     loading.value = true
     error.value = null
     
-    const searchParams: Record<string, any> = {
-      page: currentPage.value,
-      limit: 12
-    }
+    const response = await $fetch('/api/accommodations', {
+      query: {
+        // Adicionar parâmetros de filtro se necessário
+      }
+    }) as any
     
-    // Aplicar filtros
-    if (filters.value.search) {
-      searchParams.search = filters.value.search
-    }
-    
-    if (filters.value.location) {
-      searchParams.location = filters.value.location
-    }
-    
-    if (filters.value.type) {
-      searchParams.type = filters.value.type
-    }
-    
-    if (filters.value.priceRange) {
-      const [min, max] = filters.value.priceRange.split('-')
-      if (min) searchParams.min_price = parseInt(min)
-      if (max && max !== '+') searchParams.max_price = parseInt(max)
-    }
-    
-    const result = await getFeaturedStays(searchParams)
-    accommodations.value = result.data.value
-    error.value = result.error.value
-    
-    // Simular paginação (a API real retornaria esses dados)
-    totalItems.value = accommodations.value.length * 3 // Simular total
-    totalPages.value = Math.ceil(totalItems.value / 12)
-    
-  } catch (err: any) {
-    error.value = err.message || 'Erro ao carregar acomodações'
-    console.error('Error loading accommodations:', err)
+    // A API unificada retorna os dados em response.data
+    accommodations.value = response.data || []
+  } catch (err) {
+    console.error('Erro ao buscar acomodações:', err)
+    error.value = 'Erro ao carregar acomodações da API StarHub'
+    accommodations.value = []
   } finally {
     loading.value = false
   }
 }
 
-// Limpar filtros
-const clearFilters = () => {
-  filters.value = {
-    search: '',
-    location: '',
-    type: '',
-    priceRange: ''
-  }
-  currentPage.value = 1
-  loadAccommodations()
-}
-
-// Navegação de páginas
-const goToPage = (page: number) => {
-  if (page >= 1 && page <= totalPages.value) {
-    currentPage.value = page
-    loadAccommodations()
-  }
-}
-
-// Páginas visíveis na paginação
-const visiblePages = computed(() => {
-  const pages = []
-  const start = Math.max(1, currentPage.value - 2)
-  const end = Math.min(totalPages.value, currentPage.value + 2)
+onMounted(async () => {
+  // Verificar se há filtro por subcategoria na URL
+  const route = useRoute()
+  const subcategory = route.query.subcategory as string
   
-  for (let i = start; i <= end; i++) {
-    pages.push(i)
+  if (subcategory) {
+    // Mapear subcategoria para ID da pousada
+    const subcategoryMap: Record<string, string> = {
+      'casa-da-pedra': 'casa-da-pedra',
+      'canoa-do-mar': 'canoa-do-mar', 
+      'casa-cacau': 'casa-cacau'
+    }
+    
+    activePousada.value = subcategoryMap[subcategory] || subcategory
   }
   
-  return pages
-})
-
-// Watchers para filtros
-watch(() => filters.value.location, () => {
-  currentPage.value = 1
-  loadAccommodations()
-})
-
-watch(() => filters.value.type, () => {
-  currentPage.value = 1
-  loadAccommodations()
-})
-
-watch(() => filters.value.priceRange, () => {
-  currentPage.value = 1
-  loadAccommodations()
-})
-
-// Carregar dados iniciais
-onMounted(() => {
-  loadAccommodations()
-})
-
-// Meta tags
-useHead({
-  title: 'Acomodações - Casa da Pedra',
-  meta: [
-    { name: 'description', content: 'Encontre o lugar perfeito para sua estadia' }
-  ]
+  // Buscar acomodações da API
+  await fetchAccommodations()
 })
 </script>
 
@@ -300,179 +385,133 @@ useHead({
   background: #f8f9fa;
 }
 
+.accommodations-page__header {
+  background: linear-gradient(135deg, #001d5c 0%, #002279 50%, #1e40af 100%);
+  color: white;
+  padding: 4rem 0;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.accommodations-page__header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="white" opacity="0.1"/><circle cx="75" cy="75" r="1" fill="white" opacity="0.1"/><circle cx="50" cy="10" r="0.5" fill="white" opacity="0.05"/><circle cx="10" cy="60" r="0.5" fill="white" opacity="0.05"/><circle cx="90" cy="40" r="0.5" fill="white" opacity="0.05"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 2rem;
-}
-
-.accommodations-page__header {
-  background: white;
-  padding: 3rem 0;
-  text-align: center;
-  border-bottom: 1px solid #e9ecef;
+  padding: 0 1rem;
 }
 
 .accommodations-page__header h1 {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #333;
-  margin-bottom: 0.5rem;
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  position: relative;
+  z-index: 1;
 }
 
 .accommodations-page__header p {
-  font-size: 1.125rem;
-  color: #666;
+  font-size: 1.3rem;
+  opacity: 0.95;
+  margin-bottom: 1.5rem;
+  color: #ffffff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 1;
+  line-height: 1.6;
 }
 
-.accommodations-page__filters {
-  background: white;
-  padding: 2rem 0;
-  border-bottom: 1px solid #e9ecef;
+.accommodations-page__cta {
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  padding: 1rem 2rem !important;
+  border-radius: 50px !important;
+  display: inline-block !important;
+  border: 2px solid rgba(255, 255, 255, 0.3) !important;
+  backdrop-filter: blur(10px) !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2) !important;
+  transition: all 0.3s ease !important;
+  position: relative !important;
+  z-index: 1 !important;
+  margin-bottom: 0 !important;
 }
 
-.filters {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr;
-  gap: 1rem;
-  align-items: end;
-}
-
-.filters__group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.75rem 1rem;
-  border: 2px solid #e9ecef;
-  border-radius: 8px;
-  background: white;
-  transition: all 0.3s ease;
-}
-
-.filters__group:focus-within {
-  border-color: #007bff;
-  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
-}
-
-.filters__group svg {
-  width: 20px;
-  height: 20px;
-  color: #666;
-}
-
-.filters__group input,
-.filters__group select {
-  border: none;
-  outline: none;
-  background: transparent;
-  font-size: 1rem;
-  color: #333;
-  flex: 1;
-}
-
-.filters__group input::placeholder {
-  color: #999;
+.accommodations-page__cta:hover {
+  background: rgba(255, 255, 255, 0.25) !important;
+  border-color: rgba(255, 255, 255, 0.5) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2) !important;
 }
 
 .accommodations-page__content {
-  padding: 2rem 0;
+  padding: 3rem 0;
 }
 
-.accommodations-page__loading {
-  min-height: 400px;
-}
-
-.accommodations-page__skeleton-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-}
-
-.accommodations-page__skeleton-card {
-  background: white;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.accommodations-page__skeleton-image {
-  aspect-ratio: 16/9;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-}
-
-.accommodations-page__skeleton-content {
-  padding: 1.5rem;
-}
-
-.accommodations-page__skeleton-title {
-  height: 1.5rem;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
-}
-
-.accommodations-page__skeleton-subtitle {
-  height: 1rem;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 4px;
-  margin-bottom: 0.75rem;
-  width: 80%;
-}
-
-.accommodations-page__skeleton-price {
-  height: 1.25rem;
-  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-  background-size: 200% 100%;
-  animation: skeleton-loading 1.5s infinite;
-  border-radius: 4px;
-  width: 60%;
-}
-
-@keyframes skeleton-loading {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.accommodations-page__error,
-.accommodations-page__empty {
+/* Loading State */
+.loading-state {
   text-align: center;
-  padding: 4rem 2rem;
-  color: #666;
+  padding: 4rem 0;
 }
 
-.accommodations-page__error svg,
-.accommodations-page__empty svg {
-  width: 64px;
-  height: 64px;
-  color: #ccc;
-  margin-bottom: 1rem;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid #e5e7eb;
+  border-top: 4px solid #002279;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 1rem;
 }
 
-.accommodations-page__error h3,
-.accommodations-page__empty h3 {
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.loading-state p {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+/* Error State */
+.error-state {
+  text-align: center;
+  padding: 4rem 0;
+}
+
+.error-icon {
+  width: 48px;
+  height: 48px;
+  color: #ef4444;
+  margin: 0 auto 1rem;
+}
+
+.error-state h3 {
   font-size: 1.5rem;
+  color: #374151;
   margin-bottom: 0.5rem;
-  color: #333;
 }
 
-.accommodations-page__error p,
-.accommodations-page__empty p {
+.error-state p {
+  color: #6b7280;
   margin-bottom: 2rem;
 }
 
-.accommodations-page__retry,
-.accommodations-page__clear-filters {
-  background: #007bff;
+.retry-button {
+  background: #002279;
   color: white;
   border: none;
   padding: 0.75rem 1.5rem;
@@ -482,111 +521,261 @@ useHead({
   transition: all 0.3s ease;
 }
 
-.accommodations-page__retry:hover,
-.accommodations-page__clear-filters:hover {
-  background: #0056b3;
+.retry-button:hover {
+  background: #001d5c;
+  transform: translateY(-2px);
 }
 
-.accommodations-page__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 2rem;
-  align-items: stretch;
-}
-
-.accommodations-page__pagination {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 3rem;
-  padding: 2rem 0;
-}
-
-.pagination__button {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
+.pousada-section {
   background: white;
-  border: 2px solid #e9ecef;
-  padding: 0.75rem 1rem;
-  border-radius: 8px;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.pousada-section--active {
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.pousada-section__header {
+  display: flex;
+  align-items: center;
+  padding: 2rem;
+  gap: 2rem;
   cursor: pointer;
   transition: all 0.3s ease;
+}
+
+.pousada-section__header:hover {
+  background: #f8f9fa;
+}
+
+.pousada-section__logo {
+  flex-shrink: 0;
+}
+
+.pousada-section__logo img {
+  width: 80px;
+  height: 60px;
+  object-fit: contain;
+}
+
+.pousada-section__info {
+  flex: 1;
+}
+
+.pousada-section__info h2 {
+  font-size: 1.8rem;
   font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
 }
 
-.pagination__button:hover:not(:disabled) {
-  border-color: #007bff;
-  color: #007bff;
+.pousada-section__info p {
+  color: #6c757d;
+  margin-bottom: 1rem;
 }
 
-.pagination__button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.pagination__pages {
-  display: flex;
+.pousada-section__features {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   gap: 0.5rem;
+  margin-top: 1rem;
 }
 
-.pagination__page {
+.feature {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #495057;
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  text-align: center;
+  border: 1px solid #dee2e6;
+  transition: all 0.3s ease;
+}
+
+.feature:hover {
+  background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.pousada-section__toggle {
+  background: #002279;
+  color: white;
+  border: none;
+  border-radius: 50%;
   width: 40px;
   height: 40px;
-  border: 2px solid #e9ecef;
-  background: white;
-  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   cursor: pointer;
   transition: all 0.3s ease;
-  font-weight: 600;
 }
 
-.pagination__page:hover {
-  border-color: #007bff;
-  color: #007bff;
+.pousada-section__toggle:hover {
+  background: #001d5c;
+  transform: scale(1.1);
 }
 
-.pagination__page--active {
-  background: #007bff;
-  border-color: #007bff;
+.pousada-section__rooms {
+  padding: 0 2rem 2rem;
+  border-top: 1px solid #e9ecef;
+}
+
+.rooms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.room-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+.room-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+.room-card__image {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+}
+
+.room-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.room-card:hover .room-card__image img {
+  transform: scale(1.05);
+}
+
+/* Overlay removido - botão agora está no bottom do card
+.room-card__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.room-card:hover .room-card__overlay {
+  opacity: 1;
+}
+*/
+
+.room-card__button {
+  background: #002279;
   color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  margin-top: 1rem;
+}
+
+.room-card__button:hover {
+  background: #001d5c;
+  transform: scale(1.05);
+}
+
+.room-card__content {
+  padding: 1.5rem;
+}
+
+.room-card__content h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.5rem;
+}
+
+.room-card__content p {
+  color: #6c757d;
+  margin-bottom: 1rem;
+  line-height: 1.5;
+}
+
+.room-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+}
+
+.price {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #002279;
+}
+
+.period {
+  color: #6c757d;
+  font-size: 0.875rem;
 }
 
 @media (max-width: 768px) {
-  .container {
-    padding: 0 1rem;
-  }
-  
-  .accommodations-page__header {
-    padding: 2rem 0;
-  }
-  
   .accommodations-page__header h1 {
     font-size: 2rem;
   }
   
-  .filters {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-  
-  .accommodations-page__grid {
-    grid-template-columns: 1fr;
-    gap: 1.5rem;
-  }
-  
-  .accommodations-page__skeleton-grid {
-    grid-template-columns: 1fr;
-  }
-  
-  .accommodations-page__pagination {
+  .pousada-section__header {
     flex-direction: column;
+    text-align: center;
     gap: 1rem;
   }
   
-  .pagination__pages {
-    order: -1;
+  .pousada-section__logo img {
+    width: 60px;
+    height: 45px;
+  }
+  
+  .pousada-section__features {
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 0.4rem;
+  }
+  
+  .feature {
+    font-size: 0.75rem;
+    padding: 0.4rem 0.6rem;
+  }
+  
+  .rooms-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .pousada-section__features {
+    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    gap: 0.3rem;
+  }
+  
+  .feature {
+    font-size: 0.7rem;
+    padding: 0.3rem 0.5rem;
   }
 }
 </style>
